@@ -204,6 +204,7 @@ textarea.big{min-height:160px}
 <script>
 var KEY="pipeline_v3",ind=null,atv=[],view="pipe",data=[],meta={meta:5000},filtro="todos",busca="",editId=null,contId=null;
 var NIV={alta:"Alta probabilidade",media:"Média probabilidade",baixa:"Baixa probabilidade"};
+var WA_MENSAGEM="Olá, tudo bem? 😊\n\nMeu nome é Vargas, sou consultor comercial da Softcom Tecnologia e estou entrando em contato para apresentar uma solução que pode ajudar bastante na gestão do seu negócio.\n\nTrabalhamos com um sistema de gestão moderno e atualizado, preparado para as mudanças tributárias relacionadas ao IBS e à CBS, ajudando sua empresa a se adaptar a essa nova realidade.\n\nAlém disso, nosso sistema conta com banco de dados em nuvem, dispensando a necessidade de manter um servidor local, trazendo mais praticidade, segurança e facilidade de acesso às informações.\n\nGostaria de ter a oportunidade de apresentar o sistema e demonstrar, na prática, como ele pode contribuir para o dia a dia da sua empresa.\n\nVocê teria interesse em conhecer a solução, sem compromisso? Será um prazer conversar com você! 🤝";
 var W={alta:.8,media:.4,baixa:.1};
 var FREQ={diaria:"Diária",semanal:"Semanal",quinzenal:"Quinzenal",mensal:"Mensal"};
 var brl=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
@@ -436,7 +437,7 @@ function renderAtv(){
     '<div class="line">'+(a.resp?"Responsável: "+esc(a.resp):"Sem responsável")+(a.tel?" · "+esc(a.tel):"")+'</div>'+
     (a.end?'<div class="line">'+esc(a.end)+'</div>':"")+(u?'<div class="line"><a href="'+u.replace(/"/g,"%22")+'" target="_blank" rel="noopener">Ver no mapa</a>'+(a.lat!=null?' · '+a.lat+', '+a.lng:'')+'</div>':"")+
     '<div class="line">Visita em '+parse(a.data).toLocaleDateString("pt-BR")+'</div>'+(a.obs?'<div class="obs">'+esc(a.obs)+'</div>':"")+
-    '<div class="acts">'+(a.conv?"":'<button class="pri" data-acv="'+a.id+'">Converter em cliente</button>')+(t?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/55'+t+'">WhatsApp</a>':"")+'<button data-aed="'+a.id+'">Editar</button><button class="del" data-adel="'+a.id+'">Excluir</button></div></article>'}).join(""):
+    '<div class="acts">'+(a.conv?"":'<button class="pri" data-acv="'+a.id+'">Converter em cliente</button>')+(t?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/'+(t.indexOf("55")==0?t:"55"+t)+'?text='+encodeURIComponent(WA_MENSAGEM)+'">WhatsApp</a>':"")+'<button data-aed="'+a.id+'">Editar</button><button class="del" data-adel="'+a.id+'">Excluir</button></div></article>'}).join(""):
     '<div class="empty">'+(q?"Nenhum ativo encontrado.":"Nenhum ativo ainda. Toque em “+ Novo ativo” ao visitar uma loja.")+'</div>'}
 $("qa").addEventListener("input",function(e){qa=e.target.value.trim();renderAtv()});
 function abrirAtv(id){edA=id;
