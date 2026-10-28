@@ -387,9 +387,72 @@ async function lookupAddr(lat,lng){
   var st=$("agst");function msg(t){st.innerHTML=st.innerHTML.replace("Buscando o endereço…",t)}
   try{
     var m=window.claude&&claude.use?await claude.use("mcp"):null;
-    if(!m){
-      var rr=await fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&accept-language=pt-BR&lat="+lat+"&lon="+lng),jj=await rr.json(),a=jj.address||{};
-      if(!jj.address){msg("Nenhum endereço encontrado para esse ponto. Preencha à mão.");return}
+    if(!m)
+var rr = await fetch(
+  "https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=pt-BR&lat=" +
+  encodeURIComponent(lat) +
+  "&lon=" +
+  encodeURIComponent(lng)
+);
+
+if (!rr.ok) {
+  throw new Error("Falha ao consultar o serviço de endereços.");
+}
+
+var jj = await rr.json();
+var a = jj.address || {};
+
+if (!jj.address) {
+  msg("Nenhum endereço encontrado. Tente buscar pelo nome do estabelecimento.");
+  return;
+}
+
+var rua =
+  a.road ||
+  a.residential ||
+  a.unclassified ||
+  a.pedestrian ||
+  a.living_street ||
+  a.service ||
+  a.tertiary ||
+  a.secondary ||
+  a.primary ||
+  a.trunk ||
+  a.footway ||
+  a.path ||
+  a.cycleway ||
+  a.track ||
+  "";
+
+fillAd({
+  streetName: rua,
+  streetNumber: a.house_number || "",
+  neighborhood:
+    a.suburb ||
+    a.neighbourhood ||
+    a.quarter ||
+    a.city_district ||
+    "",
+  municipality:
+    a.city ||
+    a.town ||
+    a.village ||
+    a.municipality ||
+    "",
+  countrySubdivisionCodeIso: a["ISO3166-2-lvl4"] || "",
+  extendedPostalCode: a.postcode || ""
+});
+
+if (!rua) {
+  msg("A localização foi encontrada, mas o serviço não retornou o nome da rua. Tente buscar pelo endereço ou nome da loja.");
+} else if (!a.house_number) {
+  msg("Rua preenchida. O número do imóvel não foi retornado pelo mapa; confira e informe manualmente.");
+} else {
+  msg("Rua e número preenchidos. Confira os dados antes de salvar.");
+}
+return;
+}
+
       fillAd({streetName:
   a.road ||
   a.residential ||
