@@ -301,7 +301,7 @@ function downloadBIcsv(){
   var rows=[headers];
   data.forEach(function(c){rows.push(["Cliente",c.id,c.nome,c.resp,c.tel,c.st,c.prob,"",total(c),c.mensal,c.upg,c.impl,"","","","","","","",c.prevf,"","",c.end,c.obs])});
   atv.forEach(function(a){rows.push(["Ativo",a.id,a.loja,a.resp,a.tel,a.conv?"Convertido":"Ativo","",a.int,0,0,0,0,a.rua,a.num,a.bairro,a.cidade,a.uf,a.cep,a.data,"",a.lat,a.lng,a.end,a.obs])});
-  var csv="\\uFEFF"+rows.map(function(row){return row.map(function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"'}).join(";")}).join("\r\n");
+  var csv="\uFEFF"+rows.map(function(row){return row.map(function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"'}).join(";")}).join("\r\n");
   var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
   var url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Pipeline_Base_PowerBI.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
