@@ -390,7 +390,22 @@ async function lookupAddr(lat,lng){
     if(!m){
       var rr=await fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&accept-language=pt-BR&lat="+lat+"&lon="+lng),jj=await rr.json(),a=jj.address||{};
       if(!jj.address){msg("Nenhum endereço encontrado para esse ponto. Preencha à mão.");return}
-      fillAd({streetName:a.road||a.pedestrian||"",streetNumber:a.house_number||"",neighborhood:a.suburb||a.neighbourhood||a.quarter||"",municipality:a.city||a.town||a.village||a.municipality||"",countrySubdivisionCodeIso:a["ISO3166-2-lvl4"]||"",extendedPostalCode:a.postcode||""});
+      fillAd({streetName:
+  a.road ||
+  a.residential ||
+  a.unclassified ||
+  a.pedestrian ||
+  a.living_street ||
+  a.service ||
+  a.tertiary ||
+  a.secondary ||
+  a.primary ||
+  a.trunk ||
+  a.footway ||
+  a.path ||
+  a.track ||
+  a.cycleway ||
+  "",streetNumber:a.house_number||"",neighborhood:a.suburb||a.neighbourhood||a.quarter||"",municipality:a.city||a.town||a.village||a.municipality||"",countrySubdivisionCodeIso:a["ISO3166-2-lvl4"]||"",extendedPostalCode:a.postcode||""});
       msg(a.house_number?"Endereço preenchido automaticamente. Confira antes de salvar.":"Endereço preenchido, mas sem número exato. Confira e complete o número.");return}
     var r=await m.callTool("TomTom Maps","tomtom-reverse-geocode",{position:[lng,lat],language:"pt-BR",response_detail:"full"},{cache:false});
     var ad=findAddr(r.payload)||findAddr(r.structuredContent);
