@@ -9,7 +9,10 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Pipeline da semana</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">$("biRefresh").onclick=function(){renderBI()};
+$("biXlsx").onclick=function(){$("xl").click()};
+$("biCsv").onclick=function(){downloadBIcsv()};
+</script>
 <style>
 :root{--bg:#EEF1F4;--surface:#fff;--ink:#17222D;--mute:#5E6C79;--line:#D8DEE4;--brand:#1F4E79;--on-brand:#fff;
 --alta:#C23B22;--alta-bg:#FBE9E5;--media:#9A6A00;--media-bg:#FBF1D9;--baixa:#3F6A8C;--baixa-bg:#E3EDF5;--ok:#1E7A4C;
@@ -89,6 +92,29 @@ textarea.big{min-height:160px}
 .ig,.ig2{display:grid;gap:6px;align-items:center;font-size:12px}.ig{grid-template-columns:1.5fr repeat(4,1fr)}.ig2{grid-template-columns:1.5fr 1fr 1fr}.ig input,.ig2 input{padding:6px;font-size:13px;min-width:0}#ib{display:grid;gap:12px}
 [hidden]{display:none!important}
 .fabs{position:fixed;right:12px;left:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;justify-content:flex-end;pointer-events:none}.fab2{pointer-events:auto;padding:14px 18px;border-radius:99px;font-size:15px;background:var(--surface);border:1px solid var(--brand);color:var(--brand);box-shadow:0 4px 14px rgba(0,0,0,.25)}.fab2.pri{background:var(--brand);color:var(--on-brand)}.chk{display:flex;gap:8px;align-items:center;font-size:inherit;color:var(--ink)}.chk input{width:auto}.line{font-size:13px;color:var(--mute);margin-top:4px;overflow-wrap:anywhere}.line a{color:var(--brand)}
+
+/* Painel executivo estilo BI */
+.bi-wrap{display:grid;gap:12px;margin:10px 0 20px}
+.bi-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;background:linear-gradient(135deg,var(--brand),#142d46);color:#fff;border-radius:16px;padding:18px}
+.bi-hero h2{margin:0 0 4px;font-size:19px}.bi-hero p{margin:0;opacity:.82;font-size:12px}
+.bi-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.bi-kpi{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:13px;min-width:0}
+.bi-kpi small{display:block;color:var(--mute);font-size:11px;line-height:1.35}
+.bi-kpi b{display:block;font-size:19px;font-weight:800;letter-spacing:-.03em;overflow-wrap:anywhere;margin-top:5px}
+.bi-kpi .bi-hint{font-size:11px;color:var(--mute);margin-top:3px}
+.bi-panels{display:grid;grid-template-columns:1fr;gap:12px}
+.bi-panel{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}
+.bi-panel h3{margin:0 0 12px;font-size:14px}
+.bi-bar-row{display:grid;grid-template-columns:minmax(78px,1fr) minmax(75px,2fr) auto;align-items:center;gap:8px;margin:10px 0;font-size:12px}
+.bi-bar-label{overflow-wrap:anywhere}.bi-track{height:9px;background:var(--line);border-radius:99px;overflow:hidden}
+.bi-fill{height:100%;border-radius:99px;background:var(--brand);min-width:0}
+.bi-bar-value{font-variant-numeric:tabular-nums;font-weight:800;text-align:right}
+.bi-progress{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0}
+.bi-progress i{display:block;height:100%;background:var(--ok);border-radius:99px}
+.bi-foot{font-size:12px;color:var(--mute);line-height:1.5}
+.bi-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(min-width:680px){.bi-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.bi-panels{grid-template-columns:repeat(2,minmax(0,1fr))}.bi-hero h2{font-size:22px}}
+
 </style>
 </head>
 <body>
@@ -104,6 +130,14 @@ textarea.big{min-height:160px}
   <div class="chips" id="chips" role="group" aria-label="Filtrar por probabilidade"></div>
   <section id="lista"></section>
   <section id="atvv" hidden><div class="meta" id="atvh"></div><input class="search" id="qa" type="search" placeholder="Pesquisar loja, responsável ou endereço…" aria-label="Pesquisar ativos"><div id="atvl"></div></section>
+<section id="bivv" hidden>
+  <div class="bi-wrap">
+    <div class="bi-hero"><div><h2>Painel executivo</h2><p>Visão dinâmica do funil comercial, prospecção e conversões.</p></div><button type="button" id="biRefresh">Atualizar painel</button></div>
+    <div id="bicontent"></div>
+    <div class="bi-actions"><button type="button" class="pri" id="biXlsx">Baixar Excel para Power BI</button><button type="button" id="biCsv">Exportar base completa (CSV)</button></div>
+    <p class="bi-foot">O Excel reúne tabelas para importar no Power BI Desktop. O CSV reúne clientes e ativos em uma única base. Os gráficos desta tela atualizam quando você salva alterações no Pipeline.</p>
+  </div>
+</section>
   <div class="tools"><button class="pri" id="xl">Baixar planilha Excel (BI)</button><button id="exp">Exportar para planilha (CSV)</button></div>
 </main>
 <div class="fabs"><button class="fab2" id="novoa">+ Novo ativo</button><button class="pri fab2" id="novo">+ Novo cliente</button></div>
@@ -195,11 +229,11 @@ function load(){
 function save(){try{localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
 function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
 function render(){
-  var P=view!="atv";
-  ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("atvv").hidden=P;
+  var P=view=="pipe";
+  ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("atvv").hidden=view!="atv";$("bivv").hidden=view!="bi";
   
-  $("tabs").innerHTML=[["pipe","Potenciais clientes"],["atv","Ativos ("+atv.filter(function(a){return !a.conv}).length+")"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");
-  if(!P){renderAtv();return}
+  $("tabs").innerHTML=[["pipe","Potenciais clientes"],["atv","Ativos ("+atv.filter(function(a){return !a.conv}).length+")"],["bi","Painel BI"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");
+  if(view=="atv"){renderAtv();return}if(view=="bi"){renderBI();return}
   var hoje=parse(iso(new Date())),at=data.filter(function(c){return c.st=="ativo"});
   $("hoje").textContent="Hoje é "+hoje.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
   var tot=0,pond=0,cnt={alta:0,media:0,baixa:0},vals={alta:0,media:0,baixa:0};
@@ -224,6 +258,54 @@ function render(){
     if(g.length)h+='<h3 class="grp"><span class="dot" style="background:var(--'+k+')"></span>'+NIV[k]+'</h3>'+g.map(card).join("")});
   $("lista").innerHTML=h||'<div class="empty">'+(q?'Nenhum estabelecimento encontrado para “'+esc(busca)+'”.':'Nada por aqui. Toque em “+ Novo cliente” para começar.')+'</div>'
 }
+
+function biBarChart(title,items,fmt){
+  var max=Math.max(1,...items.map(function(x){return +x.value||0}));
+  return '<div class="bi-panel"><h3>'+esc(title)+'</h3>'+
+    (items.length?items.map(function(x){var v=+x.value||0,p=Math.max(0,Math.min(100,v/max*100));
+      return '<div class="bi-bar-row"><span class="bi-bar-label">'+esc(x.label)+'</span><div class="bi-track"><div class="bi-fill" style="width:'+p.toFixed(1)+'%"></div></div><span class="bi-bar-value">'+esc(fmt?fmt(v):String(v))+'</span></div>'
+    }).join(""):'<div class="empty">Sem dados para exibir.</div>')+'</div>';
+}
+function renderBI(){
+  var open=data.filter(function(c){return c.st=="ativo"});
+  var won=data.filter(function(c){return c.st=="ganho"});
+  var lost=data.filter(function(c){return c.st=="perdido"});
+  var pending=atv.filter(function(a){return !a.conv}).length;
+  var converted=atv.filter(function(a){return !!a.conv}).length;
+  var rate=atv.length?converted/atv.length*100:0;
+  var pipe=open.reduce(function(n,c){return n+total(c)},0);
+  var weighted=open.reduce(function(n,c){return n+total(c)*(W[c.prob]||0)},0);
+  var due=open.filter(function(c){return proximo(c)<=parse(iso(new Date()))}).length;
+  var target=+(ind&&ind.obj&&ind.obj.vendas)||0,actual=ind?iv("vendas"):0,progress=target?Math.min(100,actual/target*100):0;
+  var top=open.slice().sort(function(a,b){return total(b)-total(a)}).slice(0,5);
+  var maxTop=Math.max(1,...top.map(function(c){return total(c)}));
+  var money=function(v){return brl.format(v)};
+  $("bicontent").innerHTML=
+    '<div class="bi-kpis">'+
+      '<div class="bi-kpi"><small>Potencial em negociação</small><b>'+money(pipe)+'</b><div class="bi-hint">'+open.length+' oportunidades abertas</div></div>'+
+      '<div class="bi-kpi"><small>Potencial ponderado</small><b>'+money(weighted)+'</b><div class="bi-hint">Considera a probabilidade de fechamento</div></div>'+
+      '<div class="bi-kpi"><small>Clientes ganhos</small><b>'+won.length+'</b><div class="bi-hint">'+money(won.reduce(function(n,c){return n+total(c)},0))+' em contratos</div></div>'+
+      '<div class="bi-kpi"><small>Ativos aguardando conversão</small><b>'+pending+'</b><div class="bi-hint">'+atv.length+' ativos cadastrados no total</div></div>'+
+      '<div class="bi-kpi"><small>Conversão de ativos</small><b>'+rate.toLocaleString("pt-BR",{maximumFractionDigits:1})+'%</b><div class="bi-hint">'+converted+' convertidos de '+atv.length+'</div></div>'+
+      '<div class="bi-kpi"><small>Contatos pendentes ou atrasados</small><b>'+due+'</b><div class="bi-hint">'+lost.length+' oportunidades perdidas registradas</div></div>'+
+    '</div>'+
+    '<div class="bi-panels" style="margin-top:12px">'+
+      biBarChart("Funil comercial",[{label:"Em negociação",value:open.length},{label:"Fechados",value:won.length},{label:"Perdidos",value:lost.length}],function(v){return String(v)})+
+      biBarChart("Ativos por nível de interesse",[{label:"Alto",value:atv.filter(function(a){return a.int=="alta"&&!a.conv}).length},{label:"Médio",value:atv.filter(function(a){return a.int=="media"&&!a.conv}).length},{label:"Baixo",value:atv.filter(function(a){return a.int=="baixa"&&!a.conv}).length},{label:"Convertidos",value:converted}],function(v){return String(v)})+
+      '<div class="bi-panel"><h3>Meta mensal de vendas</h3><div class="top"><span>Realizado</span><b>'+money(actual)+'</b></div><div class="bi-progress"><i style="width:'+progress.toFixed(1)+'%"></i></div><div class="bi-foot">'+(target?progress.toLocaleString("pt-BR",{maximumFractionDigits:1})+'% da meta de '+money(target):'Defina uma meta de vendas em “Indicadores do mês”.')+'</div></div>'+
+      '<div class="bi-panel"><h3>Maiores oportunidades abertas</h3>'+(top.length?top.map(function(c){return '<div class="bi-bar-row"><span class="bi-bar-label">'+esc(c.nome)+'</span><div class="bi-track"><div class="bi-fill" style="width:'+Math.max(0,Math.min(100,total(c)/maxTop*100)).toFixed(1)+'%"></div></div><span class="bi-bar-value">'+money(total(c))+'</span></div>'}).join(""):'<div class="empty">Nenhuma oportunidade aberta.</div>')+'</div>'+
+    '</div>';
+}
+function downloadBIcsv(){
+  var headers=["TipoRegistro","ID","Estabelecimento","Responsavel","Telefone","Situacao","Probabilidade","Interesse","ValorEstimado","Mensalidade","UpgradeMensalidade","Implantacao","Rua","Numero","Bairro","Cidade","UF","CEP","DataVisita","PrevisaoFechamento","Latitude","Longitude","Endereco","Observacoes"];
+  var rows=[headers];
+  data.forEach(function(c){rows.push(["Cliente",c.id,c.nome,c.resp,c.tel,c.st,c.prob,"",total(c),c.mensal,c.upg,c.impl,"","","","","","","",c.prevf,"","",c.end,c.obs])});
+  atv.forEach(function(a){rows.push(["Ativo",a.id,a.loja,a.resp,a.tel,a.conv?"Convertido":"Ativo","",a.int,0,0,0,0,a.rua,a.num,a.bairro,a.cidade,a.uf,a.cep,a.data,"",a.lat,a.lng,a.end,a.obs])});
+  var csv="\\uFEFF"+rows.map(function(row){return row.map(function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"'}).join(";")}).join("\r\n");
+  var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  var url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Pipeline_Base_PowerBI.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+
 function card(c){
   var hoje=parse(iso(new Date())),at=c.st=="ativo",p=proximo(c),cls=p<hoje?"late":(+p==+hoje?"today":""),
   txt=p<hoje?"Atrasado — era para "+fd(p):(+p==+hoje?"Contatar hoje":"Próximo contato: "+fd(p)),
@@ -384,114 +466,51 @@ $("as").onclick=function(){
 function fullEnd(){var r=$("arua").value.trim(),n=$("anum").value.trim(),b=$("abairro").value.trim(),c=$("acid").value.trim(),u=$("auf").value.trim(),p=$("acep").value.trim();return [r&&(n?r+", "+n:r),b,c&&(u?c+" - "+u:c),p].filter(Boolean).join(", ")}
 function findAddr(x){if(!x||typeof x!="object")return null;var a=x.address;if(a&&typeof a=="object"&&(a.streetName||a.freeformAddress||a.municipality))return a;for(var k in x){var r=findAddr(x[k]);if(r)return r}return null}
 async function lookupAddr(lat,lng){
-  var st=$("agst");function msg(t){st.innerHTML=st.innerHTML.replace("Buscando o endereço…",t)}
+  var st=$("agst");
+  function msg(t){st.innerHTML=st.innerHTML.replace("Buscando o endereço…",t)}
+  var street="",number="",neighborhood="",city="",uf="",cep="";
   try{
-    var m=window.claude&&claude.use?await claude.use("mcp"):null;
-    if(!m)
-var rr = await fetch(
-  "https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=pt-BR&lat=" +
-  encodeURIComponent(lat) +
-  "&lon=" +
-  encodeURIComponent(lng)
-);
-
-if (!rr.ok) {
-  throw new Error("Falha ao consultar o serviço de endereços.");
-}
-
-var jj = await rr.json();
-var a = jj.address || {};
-
-if (!jj.address) {
-  msg("Nenhum endereço encontrado. Tente buscar pelo nome do estabelecimento.");
-  return;
-}
-
-var rua =
-  a.road ||
-  a.residential ||
-  a.unclassified ||
-  a.pedestrian ||
-  a.living_street ||
-  a.service ||
-  a.tertiary ||
-  a.secondary ||
-  a.primary ||
-  a.trunk ||
-  a.footway ||
-  a.path ||
-  a.cycleway ||
-  a.track ||
-  "";
-
-fillAd({
-  streetName: rua,
-  streetNumber: a.house_number || "",
-  neighborhood:
-    a.suburb ||
-    a.neighbourhood ||
-    a.quarter ||
-    a.city_district ||
-    "",
-  municipality:
-    a.city ||
-    a.town ||
-    a.village ||
-    a.municipality ||
-    "",
-  countrySubdivisionCodeIso: a["ISO3166-2-lvl4"] || "",
-  extendedPostalCode: a.postcode || ""
-});
-
-if (!rua) {
-  msg("A localização foi encontrada, mas o serviço não retornou o nome da rua. Tente buscar pelo endereço ou nome da loja.");
-} else if (!a.house_number) {
-  msg("Rua preenchida. O número do imóvel não foi retornado pelo mapa; confira e informe manualmente.");
-} else {
-  msg("Rua e número preenchidos. Confira os dados antes de salvar.");
-}
-return;
-}
-
-      fillAd({streetName:
-  a.road ||
-  a.residential ||
-  a.unclassified ||
-  a.pedestrian ||
-  a.living_street ||
-  a.service ||
-  a.tertiary ||
-  a.secondary ||
-  a.primary ||
-  a.trunk ||
-  a.footway ||
-  a.path ||
-  a.track ||
-  a.cycleway ||
-  "",streetNumber:a.house_number||"",neighborhood:a.suburb||a.neighbourhood||a.quarter||"",municipality:a.city||a.town||a.village||a.municipality||"",countrySubdivisionCodeIso:a["ISO3166-2-lvl4"]||"",extendedPostalCode:a.postcode||""});
-      msg(a.house_number?"Endereço preenchido automaticamente. Confira antes de salvar.":"Endereço preenchido, mas sem número exato. Confira e complete o número.");return}
-    var r=await m.callTool("TomTom Maps","tomtom-reverse-geocode",{position:[lng,lat],language:"pt-BR",response_detail:"full"},{cache:false});
-    var ad=findAddr(r.payload)||findAddr(r.structuredContent);
-    for(var i=0;!ad&&i<(r.content||[]).length;i++){var b=r.content[i];if(b&&b.type=="text"){try{ad=findAddr(JSON.parse(b.text))}catch(e){}}}
-    if(!ad){msg("Nenhum endereço encontrado para esse ponto. Preencha à mão.");return}
-    $("arua").value=ad.streetName||ad.freeformAddress||"";$("anum").value=ad.streetNumber||"";
-    $("abairro").value=ad.neighborhood||ad.neighbourhood||ad.municipalitySubdivision||"";$("acid").value=ad.municipality||"";
-    $("auf").value=ad.countrySubdivisionCodeIso?String(ad.countrySubdivisionCodeIso).replace("BR-",""):(ad.countrySubdivisionCode||ad.countrySubdivision||"");
-    $("acep").value=ad.extendedPostalCode||ad.postalCode||"";
-    msg(ad.streetNumber?"Endereço preenchido automaticamente. Confira antes de salvar.":"Endereço preenchido, mas sem número exato. Confira e complete o número.")
-  }catch(e){
-    msg(e&&e.code=="needs_reauth"?"Reconecte o TomTom Maps nas conexões do Claude e tente de novo.":e&&(e.code=="server_not_connected"||e.code=="not_granted"||e.code=="consent_required")?"O TomTom Maps não está liberado para esta página. Preencha à mão.":"Não foi possível buscar o endereço agora. Preencha à mão.")
+    var nr=await fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=pt-BR&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng));
+    if(nr.ok){
+      var nj=await nr.json(),a=nj.address||{};
+      street=a.road||a.residential||a.unclassified||a.pedestrian||a.living_street||a.service||a.tertiary||a.secondary||a.primary||a.trunk||a.footway||a.path||a.cycleway||a.track||"";
+      number=a.house_number||"";
+      neighborhood=a.suburb||a.neighbourhood||a.quarter||a.city_district||"";
+      city=a.city||a.town||a.village||a.municipality||"";
+      uf=a["ISO3166-2-lvl4"]||"";
+      cep=a.postcode||"";
+    }
+  }catch(e){}
+  if(!street||!number||!city){
+    try{
+      var pr=await fetch("https://photon.komoot.io/reverse?lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng)+"&lang=pt");
+      if(pr.ok){
+        var pj=await pr.json(),features=pj.features||[],p=features[0]&&features[0].properties||{};
+        street=street||p.street||((p.type=="street"||p.osm_key=="highway")?p.name:"")||"";
+        number=number||p.housenumber||"";
+        neighborhood=neighborhood||p.district||p.locality||p.suburb||"";
+        city=city||p.city||p.town||p.village||p.county||"";
+        uf=uf||p.state||"";
+        cep=cep||p.postcode||"";
+      }
+    }catch(e){}
   }
+  fillAd({streetName:street,streetNumber:number,neighborhood:neighborhood,municipality:city,countrySubdivisionCodeIso:uf,extendedPostalCode:cep});
+  if(!street)msg("O mapa não retornou o nome da rua para este ponto. Tente buscar pelo nome da loja e cidade, ou informe a rua manualmente.");
+  else if(!number)msg("Rua preenchida. O serviço de mapas não encontrou o número do imóvel; informe-o manualmente.");
+  else msg("Rua e número encontrados. Confira os demais dados antes de salvar.");
 }
 var resArr=[];
 async function nomSearch(q){var r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=br&accept-language=pt-BR&q="+encodeURIComponent(q)),j=await r.json();
   return j.map(function(x){var a=x.address||{};return {geometry:{coordinates:[+x.lon,+x.lat]},properties:{poi:{name:x.name||""},address:{streetName:a.road||"",streetNumber:a.house_number||"",neighborhood:a.suburb||a.neighbourhood||"",municipality:a.city||a.town||a.village||"",countrySubdivisionCodeIso:a["ISO3166-2-lvl4"]||"",extendedPostalCode:a.postcode||"",freeformAddress:x.display_name||""}}}})}
 function findFeat(x){if(!x||typeof x!="object")return null;if(Array.isArray(x.features))return x.features;for(var k in x){var r=findFeat(x[k]);if(r)return r}return null}
 function fillAd(ad){
-  $("arua").value=ad.streetName||ad.freeformAddress||"";$("anum").value=ad.streetNumber||"";
-  $("abairro").value=ad.neighborhood||ad.neighbourhood||ad.municipalitySubdivision||"";$("acid").value=ad.municipality||"";
-  $("auf").value=ad.countrySubdivisionCodeIso?String(ad.countrySubdivisionCodeIso).replace("BR-",""):(ad.countrySubdivisionCode||ad.countrySubdivision||"");
-  $("acep").value=ad.extendedPostalCode||ad.postalCode||""}
+  $("arua").value=ad.streetName||ad.road||ad.street||"";
+  $("anum").value=ad.streetNumber||ad.house_number||ad.housenumber||"";
+  $("abairro").value=ad.neighborhood||ad.neighbourhood||ad.municipalitySubdivision||ad.district||"";
+  $("acid").value=ad.municipality||ad.city||ad.town||ad.village||"";
+  $("auf").value=ad.countrySubdivisionCodeIso?String(ad.countrySubdivisionCodeIso).replace("BR-",""):(ad.countrySubdivisionCode||ad.countrySubdivision||ad.state||"");
+  $("acep").value=ad.extendedPostalCode||ad.postalCode||ad.postcode||""}
 async function buscaEnd(){
   var q=$("abusca").value.trim()||($("aloja").value.trim()+" "+$("acid").value.trim()).trim(),box=$("ares");
   if(!q){box.innerHTML='<div class="line">Digite o nome da loja e a cidade para buscar.</div>';return}
