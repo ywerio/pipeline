@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F4E79">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Pipeline da semana</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#EEF1F4;--surface:#fff;--ink:#17222D;--mute:#5E6C79;--line:#D8DEE4;--brand:#1F4E79;--on-brand:#fff;
+--alta:#C23B22;--alta-bg:#FBE9E5;--media:#9A6A00;--media-bg:#FBF1D9;--baixa:#3F6A8C;--baixa-bg:#E3EDF5;--ok:#1E7A4C;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10171E;--surface:#192430;--ink:#E8EEF3;--mute:#93A2B0;--line:#2B3947;--brand:#6FA8DC;--on-brand:#0B1219;
+--alta:#FF8A73;--alta-bg:#3A1F1A;--media:#E8B94A;--media-bg:#352A10;--baixa:#8DB9DD;--baixa-bg:#1B2D3C;--ok:#5FCB92}}
+:root[data-theme="dark"]{--bg:#10171E;--surface:#192430;--ink:#E8EEF3;--mute:#93A2B0;--line:#2B3947;--brand:#6FA8DC;--on-brand:#0B1219;
+--alta:#FF8A73;--alta-bg:#3A1F1A;--media:#E8B94A;--media-bg:#352A10;--baixa:#8DB9DD;--baixa-bg:#1B2D3C;--ok:#5FCB92}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.45 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:760px;margin:0 auto;padding:18px 14px 90px}
+h1{font-size:22px;font-weight:800;margin:0 0 2px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 16px;font-size:13px}
+.num{font-variant-numeric:tabular-nums}
+.sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.sum .big{grid-column:1/-1;background:var(--brand);color:var(--on-brand);border-radius:14px;padding:14px 16px}
+.big small{opacity:.8;display:block;font-size:12px}
+.big b{font-size:28px;font-weight:800;letter-spacing:-.02em}
+.mini{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.mini small{color:var(--mute);display:block;font-size:11px}
+.mini b{font-size:14px}
+.alert{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--alta);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.alert h2{font-size:14px;margin:0 0 8px}
+.alert .row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.alert .row:first-of-type{border-top:0}
+.alert.none{border-left-color:var(--ok);color:var(--mute);font-size:14px}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:7px 13px;font:600 13px Manrope,system-ui,sans-serif;white-space:nowrap;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
+h3.grp{font-size:13px;font-weight:800;margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:9px}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.name{font-weight:800;font-size:16px;overflow-wrap:anywhere}
+.badge{font-size:12px;font-weight:700;border-radius:99px;padding:3px 10px;white-space:nowrap}
+.b-alta{background:var(--alta-bg);color:var(--alta)}.b-media{background:var(--media-bg);color:var(--media)}.b-baixa{background:var(--baixa-bg);color:var(--baixa)}
+.vals{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.vals small{display:block;color:var(--mute);font-size:11px}
+.vals span{font-weight:600;font-size:14px}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed var(--line);padding-top:9px}
+.total small{color:var(--mute)}.total b{font-size:20px;font-weight:800}
+.next{font-size:13px;margin-top:8px;color:var(--mute)}
+.next.late{color:var(--alta);font-weight:700}.next.today{color:var(--media);font-weight:700}
+.obs{font-size:13px;color:var(--mute);margin-top:6px;font-style:italic}
+.acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+button{font:600 13px Manrope,system-ui,sans-serif;border-radius:8px;padding:8px 12px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink)}
+button.pri{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
+button.del{color:var(--alta);margin-left:auto}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));padding:14px 20px;border-radius:99px;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+dialog{border:0;border-radius:16px;padding:0;width:min(520px,calc(100% - 20px));background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+form{padding:18px;display:grid;gap:12px}
+form h2{margin:0;font-size:18px}
+label{font-size:12px;font-weight:600;color:var(--mute);display:grid;gap:4px}
+input,select,textarea{font:400 15px Manrope,system-ui,sans-serif;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.preview{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--mute)}
+.preview b{color:var(--ink);font-size:18px;display:block}
+.fa{display:flex;gap:8px;justify-content:flex-end}
+.empty{text-align:center;color:var(--mute);padding:30px 10px}
+.tt{position:absolute;right:14px;top:14px}
+.search{width:100%;margin-bottom:10px;padding:11px 14px;border-radius:99px}
+.meta{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px}
+.bar{height:8px;background:var(--line);border-radius:9px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;background:var(--ok)}
+.meta input{width:110px;padding:5px 8px;display:inline-block}
+.hist{font-size:12px;color:var(--mute);margin-top:8px}.hist summary{cursor:pointer;font-weight:600}.hist div{padding:3px 0;border-top:1px solid var(--line)}
+a.wa{font:600 13px Manrope,system-ui,sans-serif;border:1px solid var(--ok);color:var(--ok);border-radius:8px;padding:8px 12px;text-decoration:none}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px;justify-content:center}
+.b-ganho{background:var(--baixa-bg);color:var(--ok)}.b-perdido{background:var(--line);color:var(--mute)}
+textarea.big{min-height:160px}
+.lnk{border:0;background:none;padding:0;font:inherit;font-weight:inherit;color:inherit;text-align:left;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.he{border-left:3px solid var(--line);padding:4px 10px;margin:8px 0}.he.c{border-left-color:var(--ok)}.he small{color:var(--mute);display:block}.he button{font-size:12px;padding:3px 8px;margin-top:4px}
+#dl{max-height:40vh;overflow:auto}
+.ind{display:grid;gap:9px;margin:10px 0}.in{display:flex;justify-content:space-between;font-weight:600}.ir small{color:var(--mute)}.pay{border-top:1px dashed var(--line);padding-top:8px;margin-bottom:8px}
+.ig,.ig2{display:grid;gap:6px;align-items:center;font-size:12px}.ig{grid-template-columns:1.5fr repeat(4,1fr)}.ig2{grid-template-columns:1.5fr 1fr 1fr}.ig input,.ig2 input{padding:6px;font-size:13px;min-width:0}#ib{display:grid;gap:12px}
+[hidden]{display:none!important}
+.fabs{position:fixed;right:12px;left:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;justify-content:flex-end;pointer-events:none}.fab2{pointer-events:auto;padding:14px 18px;border-radius:99px;font-size:15px;background:var(--surface);border:1px solid var(--brand);color:var(--brand);box-shadow:0 4px 14px rgba(0,0,0,.25)}.fab2.pri{background:var(--brand);color:var(--on-brand)}.chk{display:flex;gap:8px;align-items:center;font-size:inherit;color:var(--ink)}.chk input{width:auto}.line{font-size:13px;color:var(--mute);margin-top:4px;overflow-wrap:anywhere}.line a{color:var(--brand)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Pipeline da semana</h1>
+  <p class="sub" id="hoje"></p>
+  <p class="sub" id="stat" style="margin-top:-12px"></p>
+  <div class="chips" id="tabs"></div>
+  <section class="sum" id="sum"></section>
+  <section id="alerts"></section>
+  <div class="meta" id="meta"></div>
+  <input class="search" id="q" type="search" placeholder="Pesquisar estabelecimento ou responsável…" aria-label="Pesquisar estabelecimento">
+  <div class="chips" id="chips" role="group" aria-label="Filtrar por probabilidade"></div>
+  <section id="lista"></section>
+  <section id="atvv" hidden><div class="meta" id="atvh"></div><input class="search" id="qa" type="search" placeholder="Pesquisar loja, responsável ou endereço…" aria-label="Pesquisar ativos"><div id="atvl"></div></section>
+  <div class="tools"><button class="pri" id="xl">Baixar planilha Excel (BI)</button><button id="exp">Exportar para planilha (CSV)</button></div>
+</main>
+<div class="fabs"><button class="fab2" id="novoa">+ Novo ativo</button><button class="pri fab2" id="novo">+ Novo cliente</button></div>
+
+<dialog id="dlg">
+<form id="f" method="dialog" onsubmit="return false">
+  <h2 id="ft">Novo cliente</h2>
+  <label>Estabelecimento<input id="nome" required maxlength="80" placeholder="Ex.: Padaria Pão Dourado"></label>
+  <label>Responsável<input id="resp" maxlength="60" placeholder="Nome do contato"></label>
+  <label>Probabilidade de fechamento
+    <select id="prob"><option value="alta">Alta probabilidade</option><option value="media">Média probabilidade</option><option value="baixa">Baixa probabilidade</option></select></label>
+  <div class="g2">
+    <label>Mensalidade (R$)<input id="mensal" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>
+    <label>Upgrade na mensalidade (R$)<input id="upg" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>
+  </div>
+  <label>Implantação (R$)<input id="impl" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>
+  <div class="preview">Total do contrato (12 meses + implantação)<b class="num" id="prev">R$ 0,00</b></div>
+  <label>WhatsApp (com DDD)<input id="tel" type="tel" inputmode="tel" placeholder="11999998888"></label>
+  <div class="g2">
+    <label>Previsão de fechamento<input id="prev_f" type="date"></label>
+    <label>Situação<select id="st"><option value="ativo">Em negociação</option><option value="ganho">Fechado (ganho)</option><option value="perdido">Perdido</option></select></label>
+  </div>
+  <label id="lm" hidden>Motivo da perda<input id="motivo" maxlength="120" placeholder="Preço, concorrente, sem retorno…"></label>
+  <div class="g2">
+    <label>Último contato<input id="ult" type="date" required></label>
+    <label>Frequência de contato
+      <select id="freq"><option value="diaria">Diária</option><option value="semanal">Semanal</option><option value="quinzenal">Quinzenal</option><option value="mensal">Mensal</option></select></label>
+  </div>
+  <div class="preview" id="prevNext"></div>
+  <label>Observações<textarea id="obs" rows="2" maxlength="300" placeholder="Objeções, decisor, próximo passo…"></textarea></label>
+  <div class="fa"><button type="button" id="cancel">Cancelar</button><button type="button" class="pri" id="save">Salvar</button></div>
+</form>
+</dialog>
+<dialog id="dlg2"><form onsubmit="return false"><h2 id="h2n">Registrar contato</h2>
+<label>O que foi conversado?<textarea id="cn" rows="3" maxlength="300" placeholder="Ex.: pediu proposta revisada…"></textarea></label>
+<div class="fa"><button type="button" id="c2">Cancelar</button><button type="button" class="pri" id="s2">Registrar</button></div></form></dialog>
+<dialog id="dlg3"><form onsubmit="return false"><h2>Exportar CSV</h2><textarea class="big" id="csv" readonly></textarea>
+<div class="fa"><button type="button" id="c3">Fechar</button><button type="button" class="pri" id="cp">Copiar</button></div></form></dialog>
+<dialog id="dlg4"><form onsubmit="return false"><h2 id="dn"></h2><small id="ds" style="color:var(--mute)"></small>
+<div class="g2"><label>Tipo<select id="dt"><option value="contato">Contato realizado</option><option value="obs">Observação</option></select></label><label>Data<input id="dd" type="date"></label></div>
+<label>Anotação<textarea id="dx" rows="3" maxlength="400" placeholder="O que foi conversado ou combinado?"></textarea></label>
+<button type="button" class="pri" id="da">Adicionar ao registro</button>
+<div id="dl"></div>
+<div class="fa"><button type="button" id="d4">Fechar</button></div></form></dialog>
+<dialog id="dlg5"><form onsubmit="return false"><h2>Indicadores do mês</h2><div id="ib"></div><div class="fa"><button type="button" id="nm">Iniciar novo mês</button><button type="button" id="c5">Cancelar</button><button type="button" class="pri" id="s5">Salvar</button></div></form></dialog>
+<dialog id="dlg6"><form onsubmit="return false"><h2 id="at">Novo ativo</h2>
+<label>Nome da loja<input id="aloja" maxlength="80" placeholder="Ex.: Mecânica do Zé"></label>
+<label>Responsável<input id="aresp" maxlength="60"></label>
+<label>Telefone / WhatsApp (com DDD)<input id="atel" type="tel" inputmode="tel"></label>
+<button type="button" class="pri" id="agps">Marcar minha localização (GPS)</button>
+<div class="preview" id="agst">Localização ainda não marcada.</div>
+<div class="g2" style="grid-template-columns:1fr auto"><input id="abusca" maxlength="120" placeholder="Buscar loja ou endereço (ex.: Mecânica do Zé, Campo Maior)" aria-label="Buscar endereço"><button type="button" class="pri" id="abtn">Buscar</button></div>
+<div id="ares"></div>
+<div class="g2" style="grid-template-columns:1fr auto"><input id="acoord" maxlength="300" placeholder="Colar coordenadas ou link do Google Maps" aria-label="Coordenadas"><button type="button" class="pri" id="acb">Preencher</button></div>
+<label>Rua<input id="arua" maxlength="100"></label>
+<div class="g2"><label>Número<input id="anum" maxlength="12"></label><label>Bairro<input id="abairro" maxlength="60"></label></div>
+<div class="g2"><label>Cidade<input id="acid" maxlength="60"></label><label>Estado (UF)<input id="auf" maxlength="30"></label></div>
+<label>CEP<input id="acep" maxlength="12"></label>
+<label>Link do Google Maps (opcional)<input id="alink" maxlength="300" placeholder="Cole o link do local aqui"></label>
+<div class="g2"><label>Interesse<select id="aint"><option value="alta">Alto</option><option value="media" selected>Médio</option><option value="baixa">Baixo</option></select></label><label>Data da visita<input id="adata" type="date"></label></div>
+<label>Observações<textarea id="aobs" rows="2" maxlength="300" placeholder="Como foi a visita, quem decide…"></textarea></label>
+<div class="fa"><button type="button" id="ac">Cancelar</button><button type="button" class="pri" id="as">Salvar</button></div></form></dialog>
+
+<script>
+var KEY="pipeline_v3",ind=null,atv=[],view="pipe",data=[],meta={meta:5000},filtro="todos",busca="",editId=null,contId=null;
+var NIV={alta:"Alta probabilidade",media:"Média probabilidade",baixa:"Baixa probabilidade"};
+var W={alta:.8,media:.4,baixa:.1};
+var FREQ={diaria:"Diária",semanal:"Semanal",quinzenal:"Quinzenal",mensal:"Mensal"};
+var brl=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
+function $(i){return document.getElementById(i)}
+function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
+function parse(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+function addDays(d,n){var r=new Date(d);r.setDate(r.getDate()+n);return r}
+function util(d){while(d.getDay()==0||d.getDay()==6)d=addDays(d,1);return d}
+function proximo(c){var d=parse(c.ult);
+  if(c.freq=="diaria")d=addDays(d,1);else if(c.freq=="semanal")d=addDays(d,7);else if(c.freq=="quinzenal")d=addDays(d,14);
+  else{var dia=d.getDate();d.setMonth(d.getMonth()+1);if(d.getDate()!=dia)d.setDate(0)}
+  return util(d)}
+function total(c){var t=(c.mensal+c.upg)*12+c.impl;return t||c.vt||0}
+function fd(d){return d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})}
+function esc(s){var e=document.createElement("div");e.textContent=s;return e.innerHTML}
+function norm(c){return Object.assign({end:"",link:"",resp:"",vt:0,mensal:0,upg:0,impl:0,tel:"",st:"ativo",prevf:"",motivo:"",fechadoEm:"",hist:[],obs:""},c)}
+function load(){
+  try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0)}catch(e){}
+  if(!ind)ind=IND0();fixInd();
+  if(!data.length){var h=iso(new Date()),id=0;
+    data=[["Lukinha Autopeças","Andreza","86999902085","media",3640],["Construpiso","Alex","86999993983","baixa",4600],["Alo Mecanica","Micaela","86995339017","alta",4400],["TJR Autopeças","Joaquim","86994690339","media",2840],["Chule de Patinha","Alexandre","86994266617","alta",660],["Box São Jorge Autocenter","Nayara","86988409836","baixa",0],["Hamburgueria","Fabiana","86995221414","baixa",0],["Mundo da Ceramica","Luide","86988446093","baixa",0],["Farmacia - Campo Maior","Daniele","86995153477","alta",2960],["Suporte Celular","Junior","86994212028","baixa",2520],["Renata Calçados","Holismar","86994604469","media",2760]].map(function(r){return norm({id:++id,nome:r[0],resp:r[1],tel:r[2],prob:r[3],vt:r[4],ult:h,freq:"semanal"})});save()}
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
+function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
+function render(){
+  var P=view!="atv";
+  ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("atvv").hidden=P;
+  
+  $("tabs").innerHTML=[["pipe","Potenciais clientes"],["atv","Ativos ("+atv.filter(function(a){return !a.conv}).length+")"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");
+  if(!P){renderAtv();return}
+  var hoje=parse(iso(new Date())),at=data.filter(function(c){return c.st=="ativo"});
+  $("hoje").textContent="Hoje é "+hoje.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+  var tot=0,pond=0,cnt={alta:0,media:0,baixa:0},vals={alta:0,media:0,baixa:0};
+  at.forEach(function(c){var t=total(c);tot+=t;pond+=t*W[c.prob];cnt[c.prob]++;vals[c.prob]+=t});
+  $("sum").innerHTML='<div class="big"><small>Potencial em negociação · previsão ponderada '+brl.format(pond)+'</small><b class="num">'+brl.format(tot)+'</b></div>'+
+   ["alta","media","baixa"].map(function(k){return '<div class="mini"><small>'+NIV[k].split(" ")[0]+' · '+cnt[k]+'</small><b class="num">'+brl.format(vals[k])+'</b></div>'}).join("");
+  renderInd();
+  var dev=at.filter(function(c){return proximo(c)<=hoje}).sort(function(a,b){return proximo(a)-proximo(b)});
+  $("alerts").innerHTML=dev.length?'<div class="alert"><h2>Contatos para fazer hoje ('+dev.length+')</h2>'+dev.map(function(c){var a=proximo(c)<hoje;
+    return '<div class="row"><span><button class="lnk" data-det="'+c.id+'">'+esc(c.nome)+'</button>'+(a?' <small style="color:var(--alta)">atrasado desde '+fd(proximo(c))+'</small>':'')+'</span><button class="pri" data-feito="'+c.id+'">Feito</button></div>'}).join("")+'</div>':'<div class="alert none">Nenhum contato pendente para hoje.</div>';
+  var fs=[["todos","Em negociação"],["alta","Alta"],["media","Média"],["baixa","Baixa"],["hoje","Para hoje"],["ganho","Fechados"],["perdido","Perdidos"]];
+  $("chips").innerHTML=fs.map(function(f){return '<button class="chip" data-f="'+f[0]+'" aria-pressed="'+(filtro==f[0])+'">'+f[1]+'</button>'}).join("");
+  var q=busca.toLowerCase();
+  var L=data.filter(function(c){
+    if(q&&(c.nome+" "+c.resp).toLowerCase().indexOf(q)<0)return false;
+    if(filtro=="ganho"||filtro=="perdido")return c.st==filtro;
+    if(c.st!="ativo")return !!q&&filtro=="todos";
+    return filtro=="todos"||(filtro=="hoje"?proximo(c)<=hoje:c.prob==filtro)});
+  var h="";
+  if(filtro=="ganho"||filtro=="perdido")h=L.map(card).join("");
+  else["alta","media","baixa"].forEach(function(k){var g=L.filter(function(c){return c.prob==k}).sort(function(a,b){return proximo(a)-proximo(b)});
+    if(g.length)h+='<h3 class="grp"><span class="dot" style="background:var(--'+k+')"></span>'+NIV[k]+'</h3>'+g.map(card).join("")});
+  $("lista").innerHTML=h||'<div class="empty">'+(q?'Nenhum estabelecimento encontrado para “'+esc(busca)+'”.':'Nada por aqui. Toque em “+ Novo cliente” para começar.')+'</div>'
+}
+function card(c){
+  var hoje=parse(iso(new Date())),at=c.st=="ativo",p=proximo(c),cls=p<hoje?"late":(+p==+hoje?"today":""),
+  txt=p<hoje?"Atrasado — era para "+fd(p):(+p==+hoje?"Contatar hoje":"Próximo contato: "+fd(p)),
+  bd=at?'<span class="badge b-'+c.prob+'">'+NIV[c.prob].split(" ")[0]+'</span>':'<span class="badge b-'+c.st+'">'+(c.st=="ganho"?"Fechado":"Perdido")+'</span>',
+  pf=c.prevf?'<div class="next'+(at&&parse(c.prevf)<hoje?' late':'')+'">Fechamento previsto: '+parse(c.prevf).toLocaleDateString("pt-BR")+'</div>':"",
+  tel=c.tel.replace(/\D/g,""),
+  wa=tel?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/55'+tel+'?text='+encodeURIComponent("Olá"+(c.resp?", "+c.resp:"")+"! Aqui é do suporte comercial, passando para dar sequência à nossa conversa sobre a proposta para o(a) "+c.nome+". Podemos falar?")+'">WhatsApp</a>':"",
+  hi=c.hist.length?'<details class="hist"><summary>Histórico ('+c.hist.length+')</summary>'+c.hist.slice().reverse().map(function(x){return '<div>'+parse(x.d).toLocaleDateString("pt-BR")+' — '+esc(x.t||"Contato realizado")+'</div>'}).join("")+'</details>':"";
+  return '<article class="card"><div class="top"><div><div class="name"><button class="lnk" data-det="'+c.id+'">'+esc(c.nome)+'</button></div>'+(c.resp?'<small style="color:var(--mute)">Responsável: '+esc(c.resp)+'</small>':"")+'</div>'+bd+'</div>'+
+  (c.mensal+c.upg+c.impl?'<div class="vals num"><div><small>Mensalidade</small><span>'+brl.format(c.mensal)+'</span></div><div><small>Upgrade</small><span>'+(c.upg?brl.format(c.upg):"—")+'</span></div><div><small>Implantação</small><span>'+brl.format(c.impl)+'</span></div></div>':'<div class="obs">'+(c.vt?'Valor total vindo da planilha. Edite para detalhar mensalidade e implantação.':'Valores ainda não informados.')+'</div>')+
+  '<div class="total"><small>Total (12 meses + implantação)</small><b class="num">'+brl.format(total(c))+'</b></div>'+
+  (at?'<div class="next '+cls+'">'+txt+' · '+FREQ[c.freq]+' · último em '+parse(c.ult).toLocaleDateString("pt-BR")+'</div>':"")+pf+
+  (c.st=="perdido"&&c.motivo?'<div class="obs">Motivo: '+esc(c.motivo)+'</div>':"")+(c.obs?'<div class="obs">'+esc(c.obs)+'</div>':"")+hi+
+  '<div class="acts">'+(at?'<button class="pri" data-feito="'+c.id+'">Contato feito</button>':"")+wa+'<button data-edit="'+c.id+'">Editar</button><button class="del" data-del="'+c.id+'">Excluir</button></div></article>'
+}
+function calc(){
+  var m=+$("mensal").value||0,u=+$("upg").value||0,i=+$("impl").value||0;
+  $("prev").textContent=brl.format((m+u)*12+i);
+  if($("ult").value){$("prevNext").textContent="Próximo alerta: "+fd(proximo({ult:$("ult").value,freq:$("freq").value}))+" (apenas dias úteis)"}
+  $("lm").hidden=$("st").value!="perdido"
+}
+function abrir(id){
+  editId=id;var c=data.filter(function(x){return x.id==id})[0]||norm({nome:"",prob:"alta",mensal:0,upg:0,impl:0,ult:iso(new Date()),freq:"semanal"});
+  $("ft").textContent=id?"Editar cliente":"Novo cliente";
+  $("nome").value=c.nome;$("resp").value=c.resp;$("tel").value=c.tel;$("prob").value=c.prob;$("mensal").value=c.mensal;$("upg").value=c.upg;$("impl").value=c.impl;$("ult").value=c.ult;$("freq").value=c.freq;$("obs").value=c.obs;$("prev_f").value=c.prevf;$("st").value=c.st;$("motivo").value=c.motivo;
+  calc();$("dlg").showModal()
+}
+["mensal","upg","impl","ult","freq","st"].forEach(function(i){$(i).addEventListener("input",calc)});
+$("q").addEventListener("input",function(e){busca=e.target.value.trim();render();$("q").focus()});
+$("novo").onclick=function(){abrir(null)};$("novoa").onclick=function(){abrirAtv(null)};
+$("cancel").onclick=function(){$("dlg").close()};
+$("save").onclick=function(){
+  if(!$("nome").value.trim()||!$("ult").value){$("f").reportValidity();return}
+  var o={nome:$("nome").value.trim(),resp:$("resp").value.trim(),tel:$("tel").value.trim(),prob:$("prob").value,mensal:+$("mensal").value||0,upg:+$("upg").value||0,impl:+$("impl").value||0,ult:$("ult").value,freq:$("freq").value,obs:$("obs").value.trim(),prevf:$("prev_f").value,st:$("st").value,motivo:$("motivo").value.trim()};
+  if(editId){data=data.map(function(c){if(c.id!=editId)return c;var n=Object.assign({},c,o);if(n.st=="ganho"&&c.st!="ganho")n.fechadoEm=iso(new Date());return n})}
+  else{o.id=Date.now();o=norm(o);if(o.st=="ganho")o.fechadoEm=iso(new Date());
+    if(convFrom){var a=atv.filter(function(x){return x.id==convFrom})[0];if(a){o.end=a.end||"";o.link=mapUrl(a);o.hist=[{d:iso(new Date()),t:"Origem: ativo visitado em "+parse(a.data).toLocaleDateString("pt-BR")+(a.end?" · "+a.end:""),k:"obs"}];a.conv=true;a.cid=o.id;convOk=true;delete selA[a.id]}}
+    data.push(o)}
+  save();$("dlg").close();render()
+};
+$("c2").onclick=function(){$("dlg2").close()};
+$("s2").onclick=function(){data.forEach(function(c){if(c.id==contId){c.ult=iso(new Date());c.hist.push({d:c.ult,t:$("cn").value.trim()})}});save();$("dlg2").close();render()};
+$("exp").onclick=function(){
+  var r=[["Estabelecimento","WhatsApp","Situação","Probabilidade","Mensalidade","Upgrade","Implantação","Total","Último contato","Frequência","Previsão de fechamento","Motivo da perda","Observações"]];
+  data.forEach(function(c){r.push([c.nome,c.tel,c.st,NIV[c.prob],c.mensal,c.upg,c.impl,total(c),c.ult,FREQ[c.freq],c.prevf,c.motivo,c.obs])});
+  $("csv").value=r.map(function(l){return l.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"'}).join(";")}).join("\n");$("dlg3").showModal()};
+$("c3").onclick=function(){$("dlg3").close()};
+var detId=null;
+function det(){var c=data.filter(function(x){return x.id==detId})[0];if(!c)return;
+  $("dn").textContent=c.nome;
+  $("ds").innerHTML=esc((c.resp?"Responsável: "+c.resp+" · ":"")+"Último contato: "+parse(c.ult).toLocaleDateString("pt-BR"))+(c.end?"<br>"+esc(c.end):"")+(c.link&&/^https?:\/\//.test(c.link)?' · <a href="'+c.link.replace(/"/g,"%22")+'" target="_blank" rel="noopener">Ver no mapa</a>':"");
+  var l=c.hist.map(function(x,i){return {x:x,i:i}}).sort(function(a,b){return a.x.d<b.x.d?1:(a.x.d>b.x.d?-1:b.i-a.i)});
+  $("dl").innerHTML=(c.obs?'<div class="he"><small>Observação inicial</small><div>'+esc(c.obs)+'</div></div>':"")+(l.length?l.map(function(o){var e=o.x;return '<div class="he'+(e.k=="obs"?"":" c")+'"><small>'+parse(e.d).toLocaleDateString("pt-BR")+' · '+(e.k=="obs"?"Observação":"Contato realizado")+'</small><div>'+esc(e.t||"Sem anotação")+'</div><button type="button" data-hd="'+o.i+'">Remover</button></div>'}).join(""):'<div class="empty">Nenhum registro ainda. Use o campo acima para anotar o primeiro contato.</div>')}
+$("d4").onclick=function(){$("dlg4").close()};
+$("da").onclick=function(){
+  var c=data.filter(function(x){return x.id==detId})[0],k=$("dt").value,t=$("dx").value.trim(),d=$("dd").value||iso(new Date());
+  if(!c||(k=="obs"&&!t))return;
+  c.hist.push({d:d,t:t,k:k});if(k=="contato"&&d>c.ult)c.ult=d;
+  $("dx").value="";save();det();render()};
+$("cp").onclick=function(){$("csv").select();try{document.execCommand("copy");$("cp").textContent="Copiado"}catch(e){}};
+document.addEventListener("change",function(e){if(e.target.id=="mt"){meta.meta=+e.target.value||0;save();render()}});
+document.addEventListener("click",function(e){
+  var t=e.target,id;
+  if(id=t.getAttribute("data-feito")){contId=id;$("cn").value="";$("h2n").textContent="Registrar contato";$("dlg2").showModal()}
+  else if(id=t.getAttribute("data-edit"))abrir(id);
+  else if(id=t.getAttribute("data-del")){if(confirm("Excluir este cliente?")){data=data.filter(function(c){return c.id!=id});save();render()}}
+  else if(id=t.getAttribute("data-det")){detId=id;$("dd").value=iso(new Date());$("dx").value="";$("dt").value="contato";det();$("dlg4").showModal()}
+  else if(id=t.getAttribute("data-hd")){var cc=data.filter(function(x){return x.id==detId})[0];if(cc){cc.hist.splice(+id,1);save();det();render()}}
+  else if(t.id=="bi")openInd();
+  else if(id=t.getAttribute("data-ares"))pickRes(+id);
+  else if(t.getAttribute("data-tab")){view=t.getAttribute("data-tab");render()}
+  else if(id=t.getAttribute("data-sel")){selA[id]=t.checked;renderAtv()}
+  else if(id=t.getAttribute("data-aed"))abrirAtv(id);
+  else if(id=t.getAttribute("data-acv"))startConv([id]);
+  else if(id=t.getAttribute("data-adel")){if(t.textContent=="Excluir"){t.textContent="Confirmar exclusão";return}atv=atv.filter(function(a){return a.id!=id});delete selA[id];save();render()}
+  else if(t.id=="cvs"){var ids=Object.keys(selA).filter(function(k){return selA[k]&&atv.some(function(a){return a.id==k&&!a.conv})});
+    if(!ids.length){t.textContent="Marque ao menos um ativo";setTimeout(renderAtv,1800)}else startConv(ids)}
+  else if(t.getAttribute("data-f")){filtro=t.getAttribute("data-f");render()}
+});
+var IK=["vendas","clientes","cac","vis","ativos","pos"],IN={vendas:"Vendas valor",clientes:"Qnt. clientes",cac:"Vendas aquisição (CAC)",vis:"Vis. contadores",ativos:"Ativos",pos:"Pós-venda / Indique e ganhe"},IM={vendas:1,cac:1};
+function fixInd(){if(ind&&!ind.v){ind.v=2;if(ind.plus&&ind.plus[0]&&ind.plus[1]&&!ind.plus[0].valor&&!ind.plus[1].valor){ind.plus[0].valor=200;ind.plus[1].valor=300}}}
+function IND0(){return {v:2,mes:"2026-10",sem:3,min:4,obj:{vendas:20000,clientes:12,cac:5000,vis:40,ativos:96,pos:50},peso:{vendas:100,clientes:70,cac:60,vis:25,ativos:25,pos:20},
+  ach:[{vendas:4880,clientes:1,cac:800,vis:1,ativos:7,pos:0},{vendas:7800,clientes:2,cac:1500,vis:8,ativos:18,pos:9},{vendas:5260,clientes:0,cac:1300,vis:10,ativos:14,pos:10},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}],
+  plus:[{meta:25000,valor:200},{meta:30000,valor:300}]}}
+function iv(k){return ind.ach.reduce(function(a,w){return a+(+w[k]||0)},0)}
+function wobj(k,w){var d=0;for(var i=0;i<w;i++)d+=+ind.ach[i][k]||0;return Math.max(0,ind.obj[k]-d)/(4-w)}
+function fmI(k,v){return IM[k]?brl.format(v):(Math.round(v*10)/10).toLocaleString("pt-BR")}
+function calcInd(){var hit=0,pago=0,vv=iv("vendas"),pl=0;
+  IK.forEach(function(k){if(iv(k)>=ind.obj[k])hit++});
+  IK.forEach(function(k){if(iv(k)>=ind.obj[k]&&hit>=ind.min)pago+=+ind.peso[k]||0});
+  ind.plus.forEach(function(t){if(hit>=ind.min&&t.meta>0&&vv>=t.meta)pl+=+t.valor||0});
+  return {hit:hit,ind:pago,plus:pl}}
+function renderInd(){
+  var c=calcInd(),w=ind.sem,mes=parse(ind.mes+"-01").toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+  $("meta").innerHTML='<b>Indicadores de '+mes+'</b> · semana '+(w+1)+' de 4<div class="ind">'+IK.map(function(k){
+    var a=iv(k),o=ind.obj[k],p=o>0?a/o*100:0,wo=wobj(k,w),wa=+ind.ach[w][k]||0;
+    return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Semana: '+fmI(k,wa)+' de '+fmI(k,wo)+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
+    '<div class="pay num">Batidos: <b>'+c.hit+'/6</b> (mínimo '+ind.min+') · Indicadores '+brl.format(c.ind)+' · Plus '+brl.format(c.plus)+'<br><b>Total a receber: '+brl.format(c.ind+c.plus)+'</b></div><button class="pri" id="bi">Atualizar semana</button>'}
+function openInd(){
+  var W4=[0,1,2,3],h='<label>Semana atual<select id="isem">'+W4.map(function(i){return '<option value="'+i+'"'+(i==ind.sem?' selected':'')+'>Semana '+(i+1)+'</option>'}).join("")+'</select></label>';
+  h+='<b>Alcançado por semana</b><div class="ig"><b></b><b>S1</b><b>S2</b><b>S3</b><b>S4</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span>'+W4.map(function(i){return '<input type="number" inputmode="decimal" step="any" min="0" data-w="'+i+'" data-k="'+k+'" value="'+(ind.ach[i][k]||0)+'">'}).join("")}).join("")+'</div>';
+  h+='<b>Metas e pesos do mês</b><div class="ig2"><b></b><b>Objetivo</b><b>Peso (R$)</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span><input type="number" inputmode="decimal" step="any" min="0" data-o="'+k+'" value="'+ind.obj[k]+'"><input type="number" inputmode="decimal" step="any" min="0" data-p="'+k+'" value="'+ind.peso[k]+'">'}).join("")+'</div>';
+  h+='<b>Plus (vendas)</b><div class="ig2"><b></b><b>A partir de (R$)</b><b>Adicional (R$)</b>'+ind.plus.map(function(t,i){return '<span>Faixa '+(i+1)+'</span><input type="number" inputmode="decimal" min="0" data-pm="'+i+'" value="'+t.meta+'"><input type="number" inputmode="decimal" min="0" data-pv="'+i+'" value="'+t.valor+'">'}).join("")+'</div>';
+  h+='<label>Mínimo de indicadores batidos para receber<input type="number" id="imin" min="1" max="6" value="'+ind.min+'"></label>';
+  $("ib").innerHTML=h;$("nm").textContent="Iniciar novo mês";$("dlg5").showModal()}
+function Q(sel,fn){Array.prototype.forEach.call($("ib").querySelectorAll(sel),fn)}
+$("c5").onclick=function(){$("dlg5").close()};
+$("s5").onclick=function(){
+  Q("input[data-w]",function(e){ind.ach[+e.dataset.w][e.dataset.k]=+e.value||0});
+  Q("input[data-o]",function(e){ind.obj[e.dataset.o]=+e.value||0});
+  Q("input[data-p]",function(e){ind.peso[e.dataset.p]=+e.value||0});
+  Q("input[data-pm]",function(e){ind.plus[+e.dataset.pm].meta=+e.value||0});
+  Q("input[data-pv]",function(e){ind.plus[+e.dataset.pv].valor=+e.value||0});
+  ind.sem=+$("isem").value;ind.min=+$("imin").value||4;save();$("dlg5").close();render()};
+$("nm").onclick=function(){
+  if($("nm").textContent=="Iniciar novo mês"){$("nm").textContent="Toque de novo para zerar as 4 semanas";return}
+  var d=parse(ind.mes+"-01");d.setMonth(d.getMonth()+1);ind.mes=iso(d).slice(0,7);ind.sem=0;
+  ind.ach=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});
+  save();render();openInd()};
+var selA={},qa="",ordI={alta:0,media:1,baixa:2},gps={lat:null,lng:null,acc:null},edA=null,convQ=[],convFrom=null,convOk=false;
+function mapUrl(a){if(a.link&&/^https?:\/\//.test(a.link))return a.link;if(a.lat!=null&&a.lng!=null)return "https://www.google.com/maps?q="+a.lat+","+a.lng;if(a.end)return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a.end+" "+a.loja);return ""}
+function renderAtv(){
+  var ws=semana(),mes=iso(new Date()).slice(0,7),ns=atv.filter(function(a){return a.data>=ws}).length,nm=atv.filter(function(a){return a.data.slice(0,7)==mes}).length,pend=atv.filter(function(a){return !a.conv}).length,sel=Object.keys(selA).filter(function(k){return selA[k]}).length;
+  $("atvh").innerHTML='<b>Ativos de prospecção</b><div class="pay num">Visitados nesta semana: <b>'+ns+'</b> · no mês: <b>'+nm+'</b> · aguardando conversão: <b>'+pend+'</b></div><button class="pri" id="cvs">Converter selecionados ('+sel+')</button>';
+  var q=qa.toLowerCase(),L=atv.filter(function(a){return !q||(a.loja+" "+a.resp+" "+a.end).toLowerCase().indexOf(q)>=0}).sort(function(x,y){return (x.conv?1:0)-(y.conv?1:0)||ordI[x.int]-ordI[y.int]||(x.data<y.data?1:-1)});
+  $("atvl").innerHTML=L.length?L.map(function(a){var u=mapUrl(a),t=(a.tel||"").replace(/\D/g,"");
+    return '<article class="card"><div class="top"><label class="chk"><input type="checkbox" data-sel="'+a.id+'"'+(selA[a.id]?" checked":"")+(a.conv?" disabled":"")+' aria-label="Selecionar"><span class="name">'+esc(a.loja)+'</span></label>'+(a.conv?'<span class="badge b-ganho">Convertido</span>':'<span class="badge b-'+a.int+'">'+NIV[a.int].split(" ")[0]+'</span>')+'</div>'+
+    '<div class="line">'+(a.resp?"Responsável: "+esc(a.resp):"Sem responsável")+(a.tel?" · "+esc(a.tel):"")+'</div>'+
+    (a.end?'<div class="line">'+esc(a.end)+'</div>':"")+(u?'<div class="line"><a href="'+u.replace(/"/g,"%22")+'" target="_blank" rel="noopener">Ver no mapa</a>'+(a.lat!=null?' · '+a.lat+', '+a.lng:'')+'</div>':"")+
+    '<div class="line">Visita em '+parse(a.data).toLocaleDateString("pt-BR")+'</div>'+(a.obs?'<div class="obs">'+esc(a.obs)+'</div>':"")+
+    '<div class="acts">'+(a.conv?"":'<button class="pri" data-acv="'+a.id+'">Converter em cliente</button>')+(t?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/55'+t+'">WhatsApp</a>':"")+'<button data-aed="'+a.id+'">Editar</button><button class="del" data-adel="'+a.id+'">Excluir</button></div></article>'}).join(""):
+    '<div class="empty">'+(q?"Nenhum ativo encontrado.":"Nenhum ativo ainda. Toque em “+ Novo ativo” ao visitar uma loja.")+'</div>'}
+$("qa").addEventListener("input",function(e){qa=e.target.value.trim();renderAtv()});
+function abrirAtv(id){edA=id;
+  var a=atv.filter(function(x){return x.id==id})[0]||{loja:"",resp:"",tel:"",end:"",link:"",lat:null,lng:null,int:"media",data:iso(new Date()),obs:""};
+  $("at").textContent=id?"Editar ativo":"Novo ativo";
+  $("aloja").value=a.loja;$("aresp").value=a.resp;$("atel").value=a.tel;$("arua").value=a.rua!=null?a.rua:(a.end||"");$("anum").value=a.num||"";$("abairro").value=a.bairro||"";$("acid").value=a.cidade||"";$("auf").value=a.uf||"";$("acep").value=a.cep||"";$("alink").value=a.link;$("aint").value=a.int;$("adata").value=a.data;$("aobs").value=a.obs;
+  gps={lat:a.lat,lng:a.lng,acc:a.acc||null};
+  $("agst").textContent=a.lat!=null?"Localização marcada: "+a.lat+", "+a.lng:"Localização ainda não marcada.";
+  $("dlg6").showModal()}
+$("agps").onclick=function(){
+  if(!navigator.geolocation){$("agst").textContent="Este aparelho ou navegador não oferece GPS aqui. Cole o link do Google Maps no campo abaixo.";return}
+  $("agst").textContent="Buscando sua localização…";
+  navigator.geolocation.getCurrentPosition(function(p){
+    gps={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6),acc:Math.round(p.coords.accuracy)};
+    var u=mapUrl({lat:gps.lat,lng:gps.lng});
+    $("alink").value=u;
+    $("agst").innerHTML='Local marcado: '+gps.lat+', '+gps.lng+' (precisão de cerca de '+gps.acc+' m). <a href="'+u+'" target="_blank" rel="noopener">Conferir no mapa</a>. Buscando o endereço…';lookupAddr(gps.lat,gps.lng)
+  },function(e){
+    $("agst").textContent=e&&e.code==1?"Permissão de localização negada. Libere o GPS para este app nas configurações do navegador, ou use a busca abaixo.":"Não foi possível obter a localização. Tente ao ar livre ou cole o link do Google Maps abaixo."
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0})};
+$("ac").onclick=function(){$("dlg6").close()};
+$("as").onclick=function(){
+  var loja=$("aloja").value.trim();if(!loja){$("aloja").focus();return}
+  var o={loja:loja,resp:$("aresp").value.trim(),tel:$("atel").value.trim(),end:fullEnd(),rua:$("arua").value.trim(),num:$("anum").value.trim(),bairro:$("abairro").value.trim(),cidade:$("acid").value.trim(),uf:$("auf").value.trim(),cep:$("acep").value.trim(),link:$("alink").value.trim(),lat:gps.lat,lng:gps.lng,acc:gps.acc,int:$("aint").value,data:$("adata").value||iso(new Date()),obs:$("aobs").value.trim()};
+  if(edA)atv=atv.map(function(a){return a.id==edA?Object.assign({},a,o):a});else{o.id=Date.now();o.conv=false;atv.push(o)}
+  save();view="atv";$("dlg6").close();render()};
+function fullEnd(){var r=$("arua").value.trim(),n=$("anum").value.trim(),b=$("abairro").value.trim(),c=$("acid").value.trim(),u=$("auf").value.trim(),p=$("acep").value.trim();return [r&&(n?r+", "+n:r),b,c&&(u?c+" - "+u:c),p].filter(Boolean).join(", ")}
+function findAddr(x){if(!x||typeof x!="object")return null;var a=x.address;if(a&&typeof a=="object"&&(a.streetName||a.freeformAddress||a.municipality))return a;for(var k in x){var r=findAddr(x[k]);if(r)return r}return null}
+async function lookupAddr(lat,lng){
+  var st=$("agst");function msg(t){st.innerHTML=st.innerHTML.replace("Buscando o endereço…",t)}
+  try{
+    var m=window.claude&&claude.use?await claude.use("mcp"):null;
+    if(!m){
+      var rr=await fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&accept-language=pt-BR&lat="+lat+"&lon="+lng),jj=await rr.json(),a=jj.address||{};
+      if(!jj.address){msg("Nenhum endereço encontrado para esse ponto. Preencha à mão.");return}
+      fillAd({streetName:a.road||a.pedestrian||"",streetNumber:a.house_number||"",neighborhood:a.suburb||a.neighbourhood||a.quarter||"",municipality:a.city||a.town||a.village||a.municipality||"",countrySubdivisionCodeIso:a["ISO3166-2-lvl4"]||"",extendedPostalCode:a.postcode||""});
+      msg(a.house_number?"Endereço preenchido automaticamente. Confira antes de salvar.":"Endereço preenchido, mas sem número exato. Confira e complete o número.");return}
+    var r=await m.callTool("TomTom Maps","tomtom-reverse-geocode",{position:[lng,lat],language:"pt-BR",response_detail:"full"},{cache:false});
+    var ad=findAddr(r.payload)||findAddr(r.structuredContent);
+    for(var i=0;!ad&&i<(r.content||[]).length;i++){var b=r.content[i];if(b&&b.type=="text"){try{ad=findAddr(JSON.parse(b.text))}catch(e){}}}
+    if(!ad){msg("Nenhum endereço encontrado para esse ponto. Preencha à mão.");return}
+    $("arua").value=ad.streetName||ad.freeformAddress||"";$("anum").value=ad.streetNumber||"";
+    $("abairro").value=ad.neighborhood||ad.neighbourhood||ad.municipalitySubdivision||"";$("acid").value=ad.municipality||"";
+    $("auf").value=ad.countrySubdivisionCodeIso?String(ad.countrySubdivisionCodeIso).replace("BR-",""):(ad.countrySubdivisionCode||ad.countrySubdivision||"");
+    $("acep").value=ad.extendedPostalCode||ad.postalCode||"";
+    msg(ad.streetNumber?"Endereço preenchido automaticamente. Confira antes de salvar.":"Endereço preenchido, mas sem número exato. Confira e complete o número.")
+  }catch(e){
+    msg(e&&e.code=="needs_reauth"?"Reconecte o TomTom Maps nas conexões do Claude e tente de novo.":e&&(e.code=="server_not_connected"||e.code=="not_granted"||e.code=="consent_required")?"O TomTom Maps não está liberado para esta página. Preencha à mão.":"Não foi possível buscar o endereço agora. Preencha à mão.")
+  }
+}
+var resArr=[];
+async function nomSearch(q){var r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=br&accept-language=pt-BR&q="+encodeURIComponent(q)),j=await r.json();
+  return j.map(function(x){var a=x.address||{};return {geometry:{coordinates:[+x.lon,+x.lat]},properties:{poi:{name:x.name||""},address:{streetName:a.road||"",streetNumber:a.house_number||"",neighborhood:a.suburb||a.neighbourhood||"",municipality:a.city||a.town||a.village||"",countrySubdivisionCodeIso:a["ISO3166-2-lvl4"]||"",extendedPostalCode:a.postcode||"",freeformAddress:x.display_name||""}}}})}
+function findFeat(x){if(!x||typeof x!="object")return null;if(Array.isArray(x.features))return x.features;for(var k in x){var r=findFeat(x[k]);if(r)return r}return null}
+function fillAd(ad){
+  $("arua").value=ad.streetName||ad.freeformAddress||"";$("anum").value=ad.streetNumber||"";
+  $("abairro").value=ad.neighborhood||ad.neighbourhood||ad.municipalitySubdivision||"";$("acid").value=ad.municipality||"";
+  $("auf").value=ad.countrySubdivisionCodeIso?String(ad.countrySubdivisionCodeIso).replace("BR-",""):(ad.countrySubdivisionCode||ad.countrySubdivision||"");
+  $("acep").value=ad.extendedPostalCode||ad.postalCode||""}
+async function buscaEnd(){
+  var q=$("abusca").value.trim()||($("aloja").value.trim()+" "+$("acid").value.trim()).trim(),box=$("ares");
+  if(!q){box.innerHTML='<div class="line">Digite o nome da loja e a cidade para buscar.</div>';return}
+  box.innerHTML='<div class="line">Buscando…</div>';
+  try{
+    var m=window.claude&&claude.use?await claude.use("mcp"):null;
+    var F=null;
+    if(!m){F=await nomSearch(q)}else{
+      var r=await m.callTool("TomTom Maps","tomtom-fuzzy-search",{query:q,countries:["BR"],language:"pt-BR",limit:5,response_detail:"full"},{cache:false});
+      F=findFeat(r.payload)||findFeat(r.structuredContent);
+      for(var i=0;!F&&i<(r.content||[]).length;i++){var b=r.content[i];if(b&&b.type=="text"){try{F=findFeat(JSON.parse(b.text))}catch(e){}}}}
+    resArr=(F||[]).filter(function(f){return f&&f.geometry&&f.properties});
+    box.innerHTML=resArr.length?resArr.map(function(f,i){var pr=f.properties,a=pr.address||{};
+      return '<button type="button" class="chip" style="display:block;width:100%;text-align:left;margin-top:6px;white-space:normal" data-ares="'+i+'"><b>'+esc(pr.poi&&pr.poi.name?pr.poi.name:(a.streetName||"Endereço"))+'</b><br><small>'+esc(a.freeformAddress||"")+'</small></button>'}).join(""):'<div class="line">Nada encontrado. Inclua a cidade na busca.</div>'
+  }catch(e){
+    box.innerHTML='<div class="line">'+(e&&e.code=="needs_reauth"?"Reconecte o TomTom Maps nas conexões do Claude.":e&&(e.code=="server_not_connected"||e.code=="not_granted"||e.code=="consent_required")?"O TomTom Maps não está liberado para esta página.":"Não foi possível buscar agora. Preencha à mão.")+'</div>'
+  }
+}
+function pickRes(i){
+  var f=resArr[i];if(!f)return;var pr=f.properties,c=f.geometry.coordinates;
+  fillAd(pr.address||{});
+  if(!$("aloja").value.trim()&&pr.poi&&pr.poi.name)$("aloja").value=pr.poi.name;
+  gps={lat:+(+c[1]).toFixed(6),lng:+(+c[0]).toFixed(6),acc:null};
+  $("alink").value=mapUrl({lat:gps.lat,lng:gps.lng});
+  $("agst").textContent="Endereço preenchido pela busca. Confira o número antes de salvar.";$("ares").innerHTML=""}
+$("abtn").onclick=buscaEnd;
+$("acb").onclick=function(){
+  var v=$("acoord").value,m=v.match(/(-?\d{1,3}\.\d+)\s*[,;\s]\s*(-?\d{1,3}\.\d+)/);
+  if(!m){$("agst").textContent=/goo\.gl|maps\.app/.test(v)?"Links curtos do Maps não trazem as coordenadas. Copie as coordenadas (ex.: -5.0950, -42.8008) e cole aqui.":"Não encontrei coordenadas. Cole algo como -5.0950, -42.8008.";return}
+  var la=+m[1],ln=+m[2];if(Math.abs(la)>90||Math.abs(ln)>180){$("agst").textContent="Coordenadas inválidas.";return}
+  gps={lat:la,lng:ln,acc:null};$("alink").value=mapUrl({lat:la,lng:ln});
+  $("agst").textContent="Local marcado: "+la+", "+ln+". Buscando o endereço…";lookupAddr(la,ln)};
+$("abusca").addEventListener("keydown",function(e){if(e.key=="Enter"){e.preventDefault();buscaEnd()}});
+function startConv(ids){convQ=ids.slice();nextConv()}
+function nextConv(){
+  var id=convQ.shift(),a=atv.filter(function(x){return x.id==id})[0];
+  if(!a||a.conv){if(convQ.length)nextConv();return}
+  convFrom=a.id;abrir(null);
+  $("ft").textContent="Converter em potencial cliente";
+  $("nome").value=a.loja;$("resp").value=a.resp;$("tel").value=a.tel;$("prob").value=a.int;$("obs").value=a.obs;calc()}
+$("dlg").addEventListener("close",function(){var ok=convOk;convOk=false;if(ok&&convQ.length)nextConv();else{convQ=[];convFrom=null}});
+var pt=null,DB=null;
+function stat(t){var e=$("stat");if(e)e.textContent=t}
+function pushDb(){if(!DB)return;
+  DB.doc("state").set({json:JSON.stringify({data:data,meta:meta,ind:ind,atv:atv,v:3})}).then(function(){stat("Salvo na sua conta · sincroniza entre aparelhos")}).catch(function(){stat("Não salvou na conta; cópia mantida neste aparelho")})}
+async function initDb(){
+  stat("Salvo neste aparelho");
+  try{
+    if(!window.claude||!claude.use)return;
+    var u=await claude.use("user"),d=await claude.use("db");if(!u||!d)return;
+    var uid=await u.id();if(!uid)return;
+    DB=d.collection("data/users/"+uid);
+    var snap=await DB.doc("state").get();
+    if(snap.exists){var j=JSON.parse(snap.data().json);data=j.data.map(norm);meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}if(j.atv)atv=j.atv;
+      try{localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta))}catch(e){}render();stat("Salvo na sua conta · sincroniza entre aparelhos")}
+    else pushDb()
+  }catch(e){DB=null;stat("Salvo neste aparelho (conta indisponível)")}
+}
+function build(){
+  var ST={ativo:"Em negociação",ganho:"Fechado",perdido:"Perdido"},PB={alta:"Alta",media:"Média",baixa:"Baixa"};
+  function D(x){return x?parse(x):null}
+  var head=["Estabelecimento","Responsável","WhatsApp","Situação","Probabilidade","Mensalidade","Upgrade","Implantação","Total (12 meses + implantação)","Último contato","Frequência","Próximo contato","Previsão de fechamento","Nº de contatos","Motivo da perda","Observações"];
+  var rows=[head].concat(data.map(function(c){return [c.nome,c.resp,c.tel,ST[c.st],PB[c.prob],c.mensal,c.upg,c.impl,total(c),D(c.ult),FREQ[c.freq],c.st=="ativo"?proximo(c):null,D(c.prevf),c.hist.filter(function(x){return x.k!="obs"}).length,c.motivo,c.obs]}));
+  var ws=XLSX.utils.aoa_to_sheet(rows,{cellDates:true});
+  function fmt(w,cols,a,b,z){cols.forEach(function(L){for(var r=a;r<=b;r++){var c=w[L+r];if(c)c.z=z}})}
+  var n=rows.length;
+  fmt(ws,["F","G","H","I"],2,n,'R$ #,##0.00');fmt(ws,["J","L","M"],2,n,'dd/mm/yyyy');
+  ws["!cols"]=[30,16,14,15,13,13,11,13,18,13,11,13,14,10,22,34].map(function(w){return {wch:w}});
+  ws["!autofilter"]={ref:"A1:P"+n};ws["!freeze"]={xSplit:1,ySplit:1};
+  var at=data.filter(function(c){return c.st=="ativo"}),ws0=semana(),gan=0;
+  data.forEach(function(c){if(c.st=="ganho"&&c.fechadoEm>=ws0)gan+=total(c)});
+  var R=[["Resumo do pipeline"],["Gerado em",new Date()],[],["Probabilidade","Clientes","Valor total","Peso","Previsão ponderada"]],tq=0,tv=0,tp=0;
+  ["alta","media","baixa"].forEach(function(k,i){var g=at.filter(function(c){return c.prob==k}),v=g.reduce(function(a,c){return a+total(c)},0),r=5+i;tq+=g.length;tv+=v;tp+=v*W[k];
+    R.push([PB[k],{t:"n",v:g.length,f:'COUNTIFS(Pipeline!$E:$E,A'+r+',Pipeline!$D:$D,"Em negociação")'},{t:"n",v:v,f:'SUMIFS(Pipeline!$I:$I,Pipeline!$E:$E,A'+r+',Pipeline!$D:$D,"Em negociação")'},W[k],{t:"n",v:v*W[k],f:"C"+r+"*D"+r}])});
+  R.push(["Total",{t:"n",v:tq,f:"SUM(B5:B7)"},{t:"n",v:tv,f:"SUM(C5:C7)"},"",{t:"n",v:tp,f:"SUM(E5:E7)"}]);
+  R.push([]);R.push(["Situação","Clientes","Valor total"]);
+  ["ativo","ganho","perdido"].forEach(function(k,i){var g=data.filter(function(c){return c.st==k}),r=11+i;
+    R.push([ST[k],{t:"n",v:g.length,f:"COUNTIF(Pipeline!$D:$D,A"+r+")"},{t:"n",v:g.reduce(function(a,c){return a+total(c)},0),f:"SUMIF(Pipeline!$D:$D,A"+r+",Pipeline!$I:$I)"}])});
+  var rs=XLSX.utils.aoa_to_sheet(R,{cellDates:true});
+  fmt(rs,["C","E"],5,8,'R$ #,##0.00');fmt(rs,["D"],5,7,'0%');fmt(rs,["C"],11,13,'R$ #,##0.00');fmt(rs,["B"],15,16,'R$ #,##0.00');fmt(rs,["B"],17,17,'0%');fmt(rs,["B"],2,2,'dd/mm/yyyy hh:mm');
+  rs["!cols"]=[22,16,18,10,20].map(function(w){return {wch:w}});
+  var H=[["Data","Estabelecimento","Responsável","Tipo","Anotação"]];
+  data.forEach(function(c){c.hist.forEach(function(x){H.push([parse(x.d),c.nome,c.resp,x.k=="obs"?"Observação":"Contato realizado",x.t||""])})});
+  H=[H[0]].concat(H.slice(1).sort(function(a,b){return b[0]-a[0]}));
+  var hs=XLSX.utils.aoa_to_sheet(H,{cellDates:true});fmt(hs,["A"],2,H.length,'dd/mm/yyyy');
+  hs["!cols"]=[12,30,16,18,60].map(function(w){return {wch:w}});hs["!autofilter"]={ref:"A1:E"+H.length};
+  var cc=calcInd(),I=[["Indicador","Objetivo do mês","Semana 1","Semana 2","Semana 3","Semana 4","Alcançado","% da meta","Peso (R$)","Batido?","A receber (R$)"]];
+  IK.forEach(function(k,i){var r=i+2,a=iv(k),o=ind.obj[k],hit=a>=o;
+    I.push([IN[k],o,+ind.ach[0][k]||0,+ind.ach[1][k]||0,+ind.ach[2][k]||0,+ind.ach[3][k]||0,{t:"n",v:a,f:"SUM(C"+r+":F"+r+")"},{t:"n",v:o?a/o:0,f:"IF(B"+r+"=0,0,G"+r+"/B"+r+")"},+ind.peso[k]||0,{t:"s",v:hit?"Sim":"Não",f:'IF(G'+r+'>=B'+r+',"Sim","Não")'},{t:"n",v:(hit&&cc.hit>=ind.min)?(+ind.peso[k]||0):0,f:'IF(AND(J'+r+'="Sim",COUNTIF($J$2:$J$7,"Sim")>='+ind.min+'),I'+r+',0)'}])});
+  I.push(["Total dos indicadores","","","","","","","","","",{t:"n",v:cc.ind,f:"SUM(K2:K7)"}]);
+  I.push(["Plus (vendas)","","","","","","","","","",cc.plus]);
+  I.push(["Total a receber","","","","","","","","","",{t:"n",v:cc.ind+cc.plus,f:"SUM(K8:K9)"}]);
+  var is=XLSX.utils.aoa_to_sheet(I);fmt(is,["H"],2,7,'0%');fmt(is,["I","K"],2,10,'R$ #,##0.00');
+  ["B","C","D","E","F","G"].forEach(function(L){fmt(is,[L],2,2,'R$ #,##0.00');fmt(is,[L],4,4,'R$ #,##0.00')});
+  is["!cols"]=[30,15,11,11,11,11,12,10,11,9,15].map(function(w){return {wch:w}});
+  var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,rs,"Resumo");XLSX.utils.book_append_sheet(wb,is,"Indicadores");
+  var A=[["Data da visita","Loja","Responsável","Telefone","Endereço","Latitude","Longitude","Link do mapa","Interesse","Situação","Observações"]];
+  atv.slice().sort(function(x,y){return x.data<y.data?1:-1}).forEach(function(a){A.push([parse(a.data),a.loja,a.resp,a.tel,a.end,a.lat,a.lng,mapUrl(a),NIV[a.int],a.conv?"Convertido":"Aguardando",a.obs])});
+  var as=XLSX.utils.aoa_to_sheet(A,{cellDates:true});fmt(as,["A"],2,A.length,'dd/mm/yyyy');as["!cols"]=[13,28,16,14,36,11,11,36,18,12,34].map(function(w){return {wch:w}});as["!autofilter"]={ref:"A1:K"+A.length};
+  XLSX.utils.book_append_sheet(wb,as,"Ativos");XLSX.utils.book_append_sheet(wb,ws,"Pipeline");XLSX.utils.book_append_sheet(wb,hs,"Histórico");
+  return wb
+}
+$("xl").onclick=async function(){
+  try{
+    var dl=window.claude&&claude.use?await claude.use("downloads"):null;
+    
+    var buf=XLSX.write(build(),{bookType:"xlsx",type:"array",cellDates:true});
+    var fn="pipeline-"+iso(new Date())+".xlsx";if(dl)await dl.save({filename:fn,data:buf});else{var al=document.createElement("a");al.href=URL.createObjectURL(new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));al.download=fn;document.body.appendChild(al);al.click();al.remove()}stat("Planilha gerada. Confira a pasta de downloads.")
+  }catch(e){stat(e&&e.code=="declined"?"Download cancelado.":"Não foi possível gerar o Excel. Use “Exportar para planilha (CSV)”.")}
+};
+load();render();initDb();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+</script>
+</body>
+</html>
