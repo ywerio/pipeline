@@ -40,9 +40,9 @@ h1{font-size:22px;font-weight:800;margin:0 0 2px;letter-spacing:-.01em}
 .alert .row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
 .alert .row:first-of-type{border-top:0}
 .alert.none{border-left-color:var(--ok);color:var(--mute);font-size:14px}
-.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;overflow:visible;margin-bottom:14px;padding-bottom:2px}
 .chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:7px 13px;font:600 13px Manrope,system-ui,sans-serif;white-space:nowrap;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
+.chip[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}\n#tabs .chip[data-tab="agenda"]{border:2px solid var(--ok);font-weight:800} #tabs .chip[data-tab="agenda"]:not([aria-pressed="true"]){background:var(--surface);color:var(--ok)}
 h3.grp{font-size:13px;font-weight:800;margin:18px 0 8px;display:flex;align-items:center;gap:8px}
 .dot{width:10px;height:10px;border-radius:50%}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:9px}
@@ -268,7 +268,7 @@ function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
 function render(){
   var P=view=="pipe";
   ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("atvv").hidden=view!="atv";$("contvv").hidden=view!="cont";$("visclientesvv").hidden=view!="visclientes";$("evovv").hidden=view!="evo";$("agendavv").hidden=view!="agenda";$("bivv").hidden=view!="bi";
-  $("tabs").innerHTML=[["pipe","Potenciais clientes"],["agenda","Agenda diária"],["atv","Ativos ("+atv.filter(function(a){return !a.conv}).length+")"],["cont","Contadores ("+contadores.length+")"],["visclientes","Visitas clientes ("+visitasClientes.length+")"],["evo","Evolução"],["bi","Painel BI"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");
+  $("tabs").innerHTML=[["agenda","📅 Agenda diária"],["pipe","Potenciais clientes"],["atv","Ativos ("+atv.filter(function(a){return !a.conv}).length+")"],["cont","Contadores ("+contadores.length+")"],["visclientes","Visitas clientes ("+visitasClientes.length+")"],["evo","Evolução"],["bi","Painel BI"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");
   if(view=="agenda"){renderAgenda();return}if(view=="atv"){renderAtv();return}if(view=="cont"){renderContadores();return}if(view=="visclientes"){renderVisitasClientes();return}if(view=="evo"){renderEvo();return}if(view=="bi"){renderBI();return}
   var hoje=parse(iso(new Date())),at=data.filter(function(c){return c.st=="ativo"});
   $("hoje").textContent="Hoje é "+hoje.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
