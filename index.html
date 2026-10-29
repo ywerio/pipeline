@@ -572,7 +572,7 @@ $("dlg").addEventListener("close",function(){var ok=convOk;convOk=false;if(ok&&c
 var pt=null,DB=null;
 function stat(t){var e=$("stat");if(e)e.textContent=t}
 
-function contMap(c){if(c.link&&/^https?:\\/\\//.test(c.link))return c.link;return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([c.escritorio,c.rua,c.bairro,c.cidade].filter(Boolean).join(", "))}
+function contMap(c){if(c.link&&/^https?:\/\//.test(c.link))return c.link;return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([c.escritorio,c.rua,c.bairro,c.cidade].filter(Boolean).join(", "))}
 function renderContadores(){
  var q=($("qc").value||"").toLowerCase(),L=contadores.filter(function(c){return !q||[c.escritorio,c.nome,c.tel,c.rua,c.bairro,c.cidade].join(" ").toLowerCase().indexOf(q)>=0}).sort(function(a,b){return (b.data||"").localeCompare(a.data||"")});
  $("conth").innerHTML="<b>Contadores cadastrados: "+contadores.length+"</b><div class='line'>Cada cadastro registra uma visita ao escritório e permite abrir a localização no Maps.</div>";
