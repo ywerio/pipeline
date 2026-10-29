@@ -425,7 +425,7 @@ document.addEventListener("click",function(e){
     if(!ids.length){t.textContent="Marque ao menos um ativo";setTimeout(renderAtv,1800)}else startConv(ids)}
   else if(t.getAttribute("data-f")){filtro=t.getAttribute("data-f");render()}
 });
-var IK=["vendas","clientes","cac","vis","ativos","pos"],IN={vendas:"Vendas valor",clientes:"Qnt. clientes",cac:"Vendas aquisição (CAC)",vis:"Vis. contadores",ativos:"Ativos",pos:"Pós-venda / Indique e ganhe"},IM={vendas:1,cac:1};
+var IK=["vendas","clientes","cac","vis","ativos","pos"],IN={vendas:"Vendas valor",clientes:"Qnt. clientes",cac:"Vendas aquisição (CAC)",vis:"Vis. contadores",ativos:"Ativos",pos:"Visitas a clientes / pós-venda"},IM={vendas:1,cac:1};
 function fixInd(){if(ind&&!ind.v){ind.v=2;if(ind.plus&&ind.plus[0]&&ind.plus[1]&&!ind.plus[0].valor&&!ind.plus[1].valor){ind.plus[0].valor=200;ind.plus[1].valor=300}}}
 function IND0(){return {v:2,mes:"2026-10",sem:3,min:4,obj:{vendas:20000,clientes:12,cac:5000,vis:40,ativos:96,pos:50},peso:{vendas:100,clientes:70,cac:60,vis:25,ativos:25,pos:20},
   ach:[{vendas:4880,clientes:1,cac:800,vis:1,ativos:7,pos:0},{vendas:7800,clientes:2,cac:1500,vis:8,ativos:18,pos:9},{vendas:5260,clientes:0,cac:1300,vis:10,ativos:14,pos:10},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}],
