@@ -380,6 +380,7 @@ document.addEventListener("click",function(e){
   else if(t.getAttribute("data-tab")){view=t.getAttribute("data-tab");render()}
   else if(id=t.getAttribute("data-sel")){selA[id]=t.checked;renderAtv()}
   else if(id=t.getAttribute("data-aed"))abrirAtv(id);
+  else if(id=t.getAttribute("data-acl"))clonarAtv(id);
   else if(id=t.getAttribute("data-acv"))startConv([id]);
   else if(id=t.getAttribute("data-adel")){if(t.textContent=="Excluir"){t.textContent="Confirmar exclusão";return}atv=atv.filter(function(a){return a.id!=id});delete selA[id];save();render()}
   else if(t.id=="cvs"){var ids=Object.keys(selA).filter(function(k){return selA[k]&&atv.some(function(a){return a.id==k&&!a.conv})});
@@ -437,16 +438,19 @@ function renderAtv(){
     '<div class="line">'+(a.resp?"Responsável: "+esc(a.resp):"Sem responsável")+(a.tel?" · "+esc(a.tel):"")+'</div>'+
     (a.end?'<div class="line">'+esc(a.end)+'</div>':"")+(u?'<div class="line"><a href="'+u.replace(/"/g,"%22")+'" target="_blank" rel="noopener">Ver no mapa</a>'+(a.lat!=null?' · '+a.lat+', '+a.lng:'')+'</div>':"")+
     '<div class="line">Visita em '+parse(a.data).toLocaleDateString("pt-BR")+'</div>'+(a.obs?'<div class="obs">'+esc(a.obs)+'</div>':"")+
-    '<div class="acts">'+(a.conv?"":'<button class="pri" data-acv="'+a.id+'">Converter em cliente</button>')+(t?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/'+(t.indexOf("55")==0?t:"55"+t)+'?text='+encodeURIComponent(WA_MENSAGEM)+'">WhatsApp</a>':"")+'<button data-aed="'+a.id+'">Editar</button><button class="del" data-adel="'+a.id+'">Excluir</button></div></article>'}).join(""):
+    '<div class="acts">'+(a.conv?"":'<button class="pri" data-acv="'+a.id+'">Converter em cliente</button>')+(t?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/'+(t.indexOf("55")==0?t:"55"+t)+'?text='+encodeURIComponent(WA_MENSAGEM)+'">WhatsApp</a>':"")+'<button data-aed="'+a.id+'">Editar</button><button data-acl="'+a.id+'">Clonar</button><button class="del" data-adel="'+a.id+'">Excluir</button></div></article>'}).join(""):
     '<div class="empty">'+(q?"Nenhum ativo encontrado.":"Nenhum ativo ainda. Toque em “+ Novo ativo” ao visitar uma loja.")+'</div>'}
 $("qa").addEventListener("input",function(e){qa=e.target.value.trim();renderAtv()});
-function abrirAtv(id){edA=id;
-  var a=atv.filter(function(x){return x.id==id})[0]||{loja:"",resp:"",tel:"",end:"",link:"",lat:null,lng:null,int:"media",data:iso(new Date()),obs:""};
-  $("at").textContent=id?"Editar ativo":"Novo ativo";
-  $("aloja").value=a.loja;$("aresp").value=a.resp;$("atel").value=a.tel;$("arua").value=a.rua!=null?a.rua:(a.end||"");$("anum").value=a.num||"";$("abairro").value=a.bairro||"";$("acid").value=a.cidade||"";$("auf").value=a.uf||"";$("acep").value=a.cep||"";$("alink").value=a.link;$("aint").value=a.int;$("adata").value=a.data;$("aobs").value=a.obs;
-  gps={lat:a.lat,lng:a.lng,acc:a.acc||null};
+function abrirAtv(id,clonar){
+  var original=atv.filter(function(x){return x.id==id})[0];
+  edA=clonar?null:id;
+  var a=original||{loja:"",resp:"",tel:"",end:"",link:"",lat:null,lng:null,int:"media",data:iso(new Date()),obs:""};
+  $("at").textContent=clonar?"Clonar ativo — novo cadastro":id?"Editar ativo":"Novo ativo";
+  $("aloja").value=clonar?"":a.loja;$("aresp").value=clonar?"":a.resp;$("atel").value=clonar?"":a.tel;$("arua").value=a.rua!=null?a.rua:(a.end||"");$("anum").value=a.num||"";$("abairro").value=a.bairro||"";$("acid").value=a.cidade||"";$("auf").value=a.uf||"";$("acep").value=a.cep||"";$("alink").value=a.link||"";$("aint").value=a.int||"media";$("adata").value=clonar?iso(new Date()):(a.data||iso(new Date()));$("aobs").value=clonar?"":(a.obs||"");
+  gps={lat:a.lat==null?null:a.lat,lng:a.lng==null?null:a.lng,acc:a.acc||null};
   $("agst").textContent=a.lat!=null?"Localização marcada: "+a.lat+", "+a.lng:"Localização ainda não marcada.";
   $("dlg6").showModal()}
+function clonarAtv(id){abrirAtv(id,true)}
 $("agps").onclick=function(){
   if(!navigator.geolocation){$("agst").textContent="Este aparelho ou navegador não oferece GPS aqui. Cole o link do Google Maps no campo abaixo.";return}
   $("agst").textContent="Buscando sua localização…";
