@@ -240,7 +240,29 @@ function load(){
   if(!data.length){var h=iso(new Date()),id=0;
     data=[["Lukinha Autopeças","Andreza","86999902085","media",3640],["Construpiso","Alex","86999993983","baixa",4600],["Alo Mecanica","Micaela","86995339017","alta",4400],["TJR Autopeças","Joaquim","86994690339","media",2840],["Chule de Patinha","Alexandre","86994266617","alta",660],["Box São Jorge Autocenter","Nayara","86988409836","baixa",0],["Hamburgueria","Fabiana","86995221414","baixa",0],["Mundo da Ceramica","Luide","86988446093","baixa",0],["Farmacia - Campo Maior","Daniele","86995153477","alta",2960],["Suporte Celular","Junior","86994212028","baixa",2520],["Renata Calçados","Holismar","86994604469","media",2760]].map(function(r){return norm({id:++id,nome:r[0],resp:r[1],tel:r[2],prob:r[3],vt:r[4],ult:h,freq:"semanal"})});save()}
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"e",JSON.stringify(evo))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
+function autoIndicadores(){
+  if(!ind||!ind.ach)return;
+  var mes=ind.mes||iso(new Date()).slice(0,7),auto=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});
+  function bucket(ds){if(!ds||ds.slice(0,7)!=mes)return -1;var day=+ds.slice(8,10);return day<=7?0:day<=14?1:day<=21?2:3}
+  function add(k,ds,v){var b=bucket(ds);if(b>=0)auto[b][k]+=(+v||0)}
+  contadores.forEach(function(c){add("vis",c.data,1)});
+  atv.forEach(function(a){add("ativos",a.data,1)});
+  visitasClientes.forEach(function(c){add("pos",c.data,1)});
+  data.forEach(function(c){
+    if(c.st=="ganho"&&c.fechadoEm){
+      add("clientes",c.fechadoEm,1);
+      add("vendas",c.fechadoEm,total(c));
+    }
+  });
+  // Preserva os lançamentos manuais anteriores e substitui apenas a parcela automática.
+  var old=ind.autoSnapshot;
+  if(old&&old.mes===mes&&old.ach){
+    ind.ach.forEach(function(w,i){["vendas","clientes","vis","ativos","pos"].forEach(function(k){w[k]=Math.max(0,(+w[k]||0)-(+old.ach[i][k]||0))})});
+  }
+  ind.ach.forEach(function(w,i){["vendas","clientes","vis","ativos","pos"].forEach(function(k){w[k]=(+w[k]||0)+auto[i][k]})});
+  ind.autoSnapshot={mes:mes,ach:auto};
+}
+function save(){try{autoIndicadores();localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"e",JSON.stringify(evo))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
 function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
 function render(){
   var P=view=="pipe";
