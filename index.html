@@ -227,7 +227,7 @@ body:not(.auth-locked) #loginScreen{display:none!important}
     <label>Mensalidade (R$)<input id="mensal" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>
     <label>Upgrade na mensalidade (R$)<input id="upg" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>
   </div>
-  <label>Implantação (R$)<input id="impl" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label><div class="g2"><label>Data da instalação<input id="instalacao" type="date"></label><label>Pagamento da 1ª mensalidade<input id="primeiroPgPago" type="date"></label></div><p class="sub">A instalação prevista é calculada em até 5 dias úteis após o fechamento. A primeira mensalidade vence 30 dias após a instalação. Preencha as datas reais quando ocorrerem.</p>
+  <label>Implantação (R$)<input id="impl" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label><div class="g2"><label>Data da instalação<input id="instalacao" type="date"></label><label>Pagamento da 1ª mensalidade<input id="primeiroPgPago" type="date"></label><div class="line" id="primeiroPrevisto"></div></div><p class="sub">A instalação prevista é calculada em até 5 dias úteis após o fechamento. A primeira mensalidade vence 30 dias após a instalação. Preencha as datas reais quando ocorrerem.</p>
   <div class="preview">Total do contrato (12 meses + implantação)<b class="num" id="prev">R$ 0,00</b></div>
   <label>WhatsApp (com DDD)<input id="tel" type="tel" inputmode="tel" placeholder="11999998888"></label>
   <div class="g2">
@@ -438,15 +438,16 @@ function calc(){
   if($("ult").value){$("prevNext").textContent="Próximo alerta: "+fd(proximo({ult:$("ult").value,freq:$("freq").value}))+" (apenas dias úteis)"}
   $("lm").hidden=$("st").value!="perdido"
 }
+function atualizaPrevMensal(){var fechado=(data.filter(function(x){return x.id==editId})[0]||{}).fechadoEm||iso(new Date()),inst=$("instalacao").value||addUteis(fechado,5);$("primeiroPrevisto").textContent="Vencimento previsto da 1ª mensalidade: "+parse(addDias(inst,30)).toLocaleDateString("pt-BR")+" (30 dias após a instalação)."}
 function abrir(id){
   editId=id;var c=data.filter(function(x){return x.id==id})[0]||norm({nome:"",prob:"alta",mensal:0,upg:0,impl:0,ult:iso(new Date()),freq:"semanal"});
   $("ft").textContent=id?"Editar cliente":"Novo cliente";
   $("nome").value=c.nome;$("resp").value=c.resp;$("tel").value=c.tel;$("prob").value=c.prob;$("mensal").value=c.mensal;$("upg").value=c.upg;$("impl").value=c.impl;$("instalacao").value=c.instalacao||"";$("primeiroPgPago").value=c.primeiroPgPago||"";$("ult").value=c.ult;$("freq").value=c.freq;$("obs").value=c.obs;$("prev_f").value=c.prevf;$("st").value=c.st;$("motivo").value=c.motivo;
-  calc();$("dlg").showModal()
+  atualizaPrevMensal();calc();$("dlg").showModal()
 }
 ["mensal","upg","impl","ult","freq","st"].forEach(function(i){$(i).addEventListener("input",calc)});
 $("q").addEventListener("input",function(e){busca=e.target.value.trim();render();$("q").focus()});
-$("novoa").onclick=function(){abrirAtv(null)};
+$("instalacao").addEventListener("change",atualizaPrevMensal);$("novoa").onclick=function(){abrirAtv(null)};
 $("cancel").onclick=function(){$("dlg").close()};
 $("save").onclick=function(){
   if(!$("nome").value.trim()||!$("ult").value){$("f").reportValidity();return}
@@ -777,7 +778,7 @@ $("xl").onclick=async function(){
 };
 function backupCompleto(){
   try{
-    var pacote={app:"Pipeline da semana",formato:"pipeline-backup",versao:1,exportadoEm:new Date().toISOString(),dados:{data:data,meta:meta,ind:ind,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo}};
+    var pacote={app:"Pipeline da semana",formato:"pipeline-backup",versao:1,exportadoEm:new Date().toISOString(),dados:{data:data,meta:meta,ind:ind,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,comissoes:comissoes}};
     var blob=new Blob([JSON.stringify(pacote,null,2)],{type:"application/json"});
     var url=URL.createObjectURL(blob),a=document.createElement("a");
     a.href=url;a.download="pipeline-backup-"+iso(new Date())+".json";document.body.appendChild(a);a.click();a.remove();
@@ -790,7 +791,7 @@ function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").se
 $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade").onclick=closeMenu;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
 var pipelineStarted=false;
 window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
-window.__pipelineResetState=function(){data=[];meta={meta:0};ind=IND0();atv=[];contadores=[];visitasClientes=[];evo={};render()};
+window.__pipelineResetState=function(){data=[];meta={meta:0};ind=IND0();atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 
