@@ -136,7 +136,7 @@ textarea.big{min-height:160px}
 <aside id="menudrawer" class="menu-drawer" aria-label="Menu principal" aria-hidden="true">
   <div class="menu-head"><strong>Menu principal</strong><button type="button" id="menuclose" aria-label="Fechar menu">✕</button></div>
   <nav id="menulinks" class="menu-links" aria-label="Navegação"></nav>
-  <div style="padding:12px 16px;border-top:1px solid var(--line)"><button type="button" id="backupJson" class="pri" style="width:100%">Baixar backup completo (JSON)</button><p class="sub" style="font-size:12px;margin:8px 0 0">Guarde este arquivo para proteger todos os registros do aplicativo.</p></div>
+  <div style="padding:12px 16px;border-top:1px solid var(--line);display:grid;gap:8px"><button type="button" id="firebaseLogin" class="pri" style="width:100%">Entrar e ativar sincronização</button><button type="button" id="firebaseLogout" class="sec" style="width:100%;display:none">Sair da conta</button><p id="firebaseStatus" class="sub" style="font-size:12px;margin:0">Sincronização na nuvem ainda não ativada.</p><button type="button" id="backupJson" class="pri" style="width:100%">Baixar backup completo (JSON)</button><p class="sub" style="font-size:12px;margin:0">Guarde este arquivo para proteger todos os registros do aplicativo.</p></div>
 </aside>
 <main>
   <div class="app-header"><button type="button" class="menu-toggle" id="menutoggle" aria-label="Abrir menu" aria-expanded="false">☰</button><div><h1>Pipeline da semana</h1><p class="sub" style="margin:2px 0 0">Gestão comercial</p></div></div>
@@ -664,21 +664,14 @@ function renderVisitasClientes(){var q=($("qvc").value||"").toLowerCase(),L=visi
 function abrirVisitaCliente(id){editVisitaId=id;var c=visitasClientes.filter(function(x){return x.id==id})[0]||{cliente:"",nome:"",tel:"",rua:"",bairro:"",cidade:"",link:"",data:iso(new Date())};$("vctitle").textContent=id?"Editar visita a cliente":"Registrar visita a cliente";$("vccliente").value=c.cliente||"";$("vcnome").value=c.nome||"";$("vctel").value=c.tel||"";$("vcrua").value=c.rua||"";$("vcbairro").value=c.bairro||"";$("vccidade").value=c.cidade||"";$("vclink").value=c.link||"";$("dlg8").showModal()}
 $("novoVisCliente").onclick=function(){abrirVisitaCliente(null)};$("vccancel").onclick=function(){$("dlg8").close()};$("qvc").addEventListener("input",renderVisitasClientes);
 $("vcsave").onclick=function(){var nome=$("vccliente").value.trim();if(!nome){$("vccliente").focus();return}var old=visitasClientes.filter(function(c){return c.id==editVisitaId})[0],o={cliente:nome,nome:$("vcnome").value.trim(),tel:$("vctel").value.trim(),rua:$("vcrua").value.trim(),bairro:$("vcbairro").value.trim(),cidade:$("vccidade").value.trim(),link:$("vclink").value.trim(),data:old?old.data:iso(new Date()),visitas:old?(old.visitas||[{data:old.data,hora:old.hora||"",comentario:old.comentario||"Visita inicial"}]):[{data:iso(new Date()),hora:new Date().toTimeString().slice(0,5),comentario:"Visita inicial"}]};if(editVisitaId)visitasClientes=visitasClientes.map(function(c){return c.id==editVisitaId?Object.assign({},c,o):c});else{o.id=Date.now();visitasClientes.push(o)}save();$("dlg8").close();render()};
-function pushDb(){if(!DB)return;
-  DB.doc("state").set({json:JSON.stringify({data:data,meta:meta,ind:ind,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,v:5})}).then(function(){stat("Salvo na sua conta · sincroniza entre aparelhos")}).catch(function(){stat("Não salvou na conta; cópia mantida neste aparelho")})}
-async function initDb(){
-  stat("Salvo neste aparelho");
-  try{
-    if(!window.claude||!claude.use)return;
-    var u=await claude.use("user"),d=await claude.use("db");if(!u||!d)return;
-    var uid=await u.id();if(!uid)return;
-    DB=d.collection("data/users/"+uid);
-    var snap=await DB.doc("state").get();
-    if(snap.exists){var j=JSON.parse(snap.data().json);data=j.data.map(norm);meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;
-      try{localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"e",JSON.stringify(evo))}catch(e){}render();stat("Salvo na sua conta · sincroniza entre aparelhos")}
-    else pushDb()
-  }catch(e){DB=null;stat("Salvo neste aparelho (conta indisponível)")}
-}
+function pushDb(){if(window.__pipelineCloudSave)window.__pipelineCloudSave().catch(function(){stat("Falha na nuvem; seus dados continuam salvos neste aparelho")})}
+function initDb(){stat("Salvo neste aparelho · entre na conta para ativar a nuvem")}
+window.__pipelineGetState=function(){return {data:data,meta:meta,ind:ind,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,v:5}};
+window.__pipelineApplyState=function(j){
+  if(!j||!Array.isArray(j.data))throw new Error("Backup da nuvem inválido");
+  data=j.data.map(norm);meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;
+  localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"e",JSON.stringify(evo));render();
+};
 function build(){
   var ST={ativo:"Em negociação",ganho:"Fechado",perdido:"Perdido"},PB={alta:"Alta",media:"Média",baixa:"Baixa"};
   function D(x){return x?parse(x):null}
@@ -746,6 +739,71 @@ function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").se
 $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade").onclick=closeMenu;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
 $("evodata").value=iso(new Date());load();render();initDb();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA7TbtmQw2dEBa1V9iNXgdhdSkYSCyMU5M",
+  authDomain: "pipeline-softcom.firebaseapp.com",
+  projectId: "pipeline-softcom",
+  storageBucket: "pipeline-softcom.firebasestorage.app",
+  messagingSenderId: "118247569716",
+  appId: "1:247569716:web:913b112c90ac3a67f5cd61"
+};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const provider=new GoogleAuthProvider();
+const login=document.getElementById("firebaseLogin");
+const logout=document.getElementById("firebaseLogout");
+const status=document.getElementById("firebaseStatus");
+let cloudRef=null, cloudReady=false, saving=false;
+function show(t){if(status)status.textContent=t;if(window.stat)window.stat(t)}
+async function activate(user){
+  cloudRef=doc(db,"users",user.uid,"pipeline","state");
+  const snap=await getDoc(cloudRef);
+  const local=window.__pipelineGetState();
+  if(snap.exists()){
+    const choice=confirm("Já existe um backup na nuvem desta conta. OK = baixar os dados da nuvem para este aparelho. Cancelar = manter os dados deste aparelho e enviar uma cópia para a nuvem.");
+    if(choice){
+      const payload=snap.data().json;
+      window.__pipelineApplyState(typeof payload==="string"?JSON.parse(payload):payload);
+      show("Dados da nuvem carregados neste aparelho.");
+    }else{
+      const replace=confirm("Confirma enviar os dados atuais deste aparelho para a nuvem, substituindo a cópia que já existe?");
+      if(!replace){show("Sincronização pausada. Nenhum dado foi alterado.");cloudRef=null;cloudReady=false;return;}
+      await setDoc(cloudRef,{json:JSON.stringify(local),updatedAt:new Date().toISOString()});
+      show("Dados deste aparelho enviados para a nuvem.");
+    }
+  }else{
+    const ok=confirm("Ainda não há dados na nuvem para esta conta. Deseja enviar agora os dados deste aparelho para iniciar a sincronização?");
+    if(!ok){show("Conta conectada, mas migração não realizada. Seus dados locais foram preservados.");cloudRef=null;cloudReady=false;return;}
+    await setDoc(cloudRef,{json:JSON.stringify(local),updatedAt:new Date().toISOString()});
+    show("Primeira cópia enviada para a nuvem.");
+  }
+  cloudReady=true;
+  window.__pipelineCloudSave=async function(){
+    if(!cloudReady||!cloudRef||saving)return;
+    saving=true;
+    try{await setDoc(cloudRef,{json:JSON.stringify(window.__pipelineGetState()),updatedAt:new Date().toISOString()});show("Sincronizado na nuvem · dados também salvos neste aparelho.");}
+    finally{saving=false;}
+  };
+}
+login?.addEventListener("click",async()=>{
+  login.disabled=true;show("Abrindo login Google...");
+  try{const result=await signInWithPopup(auth,provider);await activate(result.user);}
+  catch(e){show("Não foi possível conectar: "+(e.code||e.message));}
+  finally{login.disabled=false;}
+});
+logout?.addEventListener("click",async()=>{await signOut(auth);cloudReady=false;cloudRef=null;window.__pipelineCloudSave=null;show("Saiu da conta. Os dados locais continuam neste aparelho.");});
+onAuthStateChanged(auth,user=>{
+  if(user){if(login)login.textContent="Conta conectada: "+(user.email||"Google");if(logout)logout.style.display="block";}
+  else{if(login)login.textContent="Entrar e ativar sincronização";if(logout)logout.style.display="none";}
+});
 </script>
 </body>
 </html>
