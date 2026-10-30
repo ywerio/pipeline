@@ -129,6 +129,36 @@ textarea.big{min-height:160px}
 .bi-actions{display:flex;gap:8px;flex-wrap:wrap}
 @media(min-width:680px){.bi-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.bi-panels{grid-template-columns:repeat(2,minmax(0,1fr))}.bi-hero h2{font-size:22px}}
 
+
+/* Layout amplo para computadores; telas móveis mantêm o desenho atual. */
+@media (min-width: 900px){
+  main{width:min(100% - 64px, 1600px);max-width:none;margin:0 auto;padding:28px 0 56px}
+  body{font-size:15px}
+  .app-header{margin-bottom:16px}
+  .app-header h1{font-size:27px}
+  .sum{gap:14px;margin-bottom:20px}
+  .sum .big{padding:20px 24px}
+  .mini{padding:14px 16px}
+  .alert{padding:16px 20px}
+  .bi-wrap{gap:16px;margin:14px 0 24px}
+  .bi-hero{padding:24px 28px}
+  .bi-kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  .bi-panels{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .bi-kpi,.bi-panel{padding:18px}
+  .bi-kpi b{font-size:23px}
+  .card{padding:17px 19px;margin-bottom:12px}
+  .name{font-size:17px}
+  .menu-drawer{width:320px;max-width:380px}
+  dialog{width:min(680px,calc(100% - 48px))}
+  form{padding:24px;gap:15px}
+  .search{max-width:560px}
+}
+@media (min-width: 1400px){
+  main{width:min(100% - 96px, 1760px)}
+  .sum{gap:16px}
+  .bi-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
 </style>
 </head>
 <body>
