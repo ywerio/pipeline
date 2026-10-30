@@ -159,14 +159,29 @@ textarea.big{min-height:160px}
   .bi-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 
+
+/* Tela inicial protegida por autenticação */
+#loginScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--bg);color:var(--ink)}
+.login-card{width:min(100%,440px);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:34px 30px;box-shadow:0 12px 40px rgba(20,40,60,.09);text-align:center}
+.login-mark{width:54px;height:54px;border-radius:16px;background:var(--brand);color:var(--on-brand);display:grid;place-items:center;font-size:27px;font-weight:800;margin:0 auto 18px}
+.login-card h1{font-size:27px;margin:0}
+.login-card>p:first-of-type{color:var(--mute);margin:5px 0 20px}
+.login-copy{font-size:14px;line-height:1.6;margin:0 0 24px}
+.login-google{width:100%;min-height:48px;font-size:15px;display:flex;justify-content:center;align-items:center;gap:12px}
+.login-google span{background:#fff;color:#4285f4;border-radius:50%;width:23px;height:23px;display:grid;place-items:center;font-weight:800}
+#loginStatus{font-size:12px;color:var(--mute);min-height:18px;margin:14px 0 0;overflow-wrap:anywhere}
+.login-footer{color:var(--mute);font-size:11px;margin-top:18px}
+body.auth-locked>main,body.auth-locked>.fabs,body.auth-locked>#menushade,body.auth-locked>#menudrawer{display:none!important}
+body:not(.auth-locked) #loginScreen{display:none!important}
 </style>
 </head>
-<body>
+<body class="auth-locked">
+<section id="loginScreen" aria-label="Acesso ao Pipeline"><div class="login-card"><div class="login-mark">P</div><h1>Pipeline</h1><p>Gestão comercial em um só lugar.</p><p class="login-copy">Entre com sua conta Google para acessar seus clientes, oportunidades, metas e indicadores com segurança.</p><button type="button" id="googleLogin" class="pri login-google"><span aria-hidden="true">G</span> Entrar com Google</button><p id="loginStatus" role="status">Faça login para continuar.</p></div><small class="login-footer">Acesso protegido pela sua conta Google</small></section>
 <div id="menushade" class="menu-shade" hidden></div>
 <aside id="menudrawer" class="menu-drawer" aria-label="Menu principal" aria-hidden="true">
   <div class="menu-head"><strong>Menu principal</strong><button type="button" id="menuclose" aria-label="Fechar menu">✕</button></div>
   <nav id="menulinks" class="menu-links" aria-label="Navegação"></nav>
-  <div style="padding:12px 16px;border-top:1px solid var(--line);display:grid;gap:8px"><button type="button" id="firebaseLogin" class="pri" style="width:100%">Entrar e ativar sincronização</button><button type="button" id="firebaseLogout" class="sec" style="width:100%;display:none">Sair da conta</button><p id="firebaseStatus" class="sub" style="font-size:12px;margin:0">Sincronização na nuvem ainda não ativada.</p><button type="button" id="backupJson" class="pri" style="width:100%">Baixar backup completo (JSON)</button><p class="sub" style="font-size:12px;margin:0">Guarde este arquivo para proteger todos os registros do aplicativo.</p></div>
+  <div style="padding:12px 16px;border-top:1px solid var(--line);display:grid;gap:8px"><button type="button" id="firebaseLogin" class="pri" style="width:100%;display:none">Entrar e ativar sincronização</button><button type="button" id="firebaseLogout" class="sec" style="width:100%;display:none">Sair da conta</button><p id="firebaseStatus" class="sub" style="font-size:12px;margin:0">Sincronização na nuvem ainda não ativada.</p><button type="button" id="backupJson" class="pri" style="width:100%">Baixar backup completo (JSON)</button><p class="sub" style="font-size:12px;margin:0">Guarde este arquivo para proteger todos os registros do aplicativo.</p></div>
 </aside>
 <main>
   <div class="app-header"><button type="button" class="menu-toggle" id="menutoggle" aria-label="Abrir menu" aria-expanded="false">☰</button><div><h1>Pipeline da semana</h1><p class="sub" style="margin:2px 0 0">Gestão comercial</p></div></div>
@@ -266,7 +281,7 @@ textarea.big{min-height:160px}
 <dialog id="dlg8"><form onsubmit="return false"><h2 id="vctitle">Registrar visita a cliente</h2><label>Nome do cliente / estabelecimento<input id="vccliente" maxlength="100" required placeholder="Nome do cliente"></label><label>Nome do contato<input id="vcnome" maxlength="80" placeholder="Nome do responsável"></label><label>Telefone / WhatsApp<input id="vctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="vcrua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="vcbairro" maxlength="80"></label><label>Cidade<input id="vccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="vclink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="vccancel">Cancelar</button><button type="button" class="pri" id="vcsave">Salvar visita</button></div></form></dialog>
 <dialog id="dlg7"><form onsubmit="return false"><h2 id="ctitle">Novo contador</h2><label>Nome do escritório<input id="cescritorio" maxlength="100" required placeholder="Ex.: Escritório Contábil Silva"></label><label>Nome do contador<input id="cnome" maxlength="80" placeholder="Nome do contador"></label><label>Telefone / WhatsApp<input id="ctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="crua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="cbairro" maxlength="80"></label><label>Cidade<input id="ccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="clink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="ccancel">Cancelar</button><button type="button" class="pri" id="csave">Salvar contador</button></div></form></dialog>
 <script>
-var KEY="pipeline_v3",ind=null,atv=[],contadores=[],visitasClientes=[],evo={},view="pipe",data=[],meta={meta:5000},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null;
+var KEY="pipeline_v3",ind=null,atv=[],contadores=[],visitasClientes=[],evo={},view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null;
 var NIV={alta:"Alta probabilidade",media:"Média probabilidade",baixa:"Baixa probabilidade"};
 var WA_MENSAGEM="Olá, tudo bem? 😊\n\nSou Vargas, consultor comercial da Softcom Tecnologia.\n\nTrabalho com uma solução de gestão moderna, com banco de dados em nuvem e garantia de um sistema sempre atualizado e preparado para acompanhar as mudanças e exigências das regras fiscais.\n\nGostaria de saber se podemos agendar uma breve demonstração para você conhecer a solução e ver como ela pode ajudar no dia a dia da sua empresa.\n\nO que acha? 🤝";
 var W={alta:.8,media:.4,baixa:.1};
@@ -288,8 +303,6 @@ function norm(c){return Object.assign({end:"",link:"",resp:"",vt:0,mensal:0,upg:
 function load(){
   try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0);var cv0=localStorage.getItem(KEY+"c");if(cv0)contadores=JSON.parse(cv0);var vc0=localStorage.getItem(KEY+"vc");if(vc0)visitasClientes=JSON.parse(vc0);var ev0=localStorage.getItem(KEY+"e");if(ev0)evo=JSON.parse(ev0)}catch(e){}
   if(!ind)ind=IND0();fixInd();
-  if(!data.length){var h=iso(new Date()),id=0;
-    data=[["Lukinha Autopeças","Andreza","86999902085","media",3640],["Construpiso","Alex","86999993983","baixa",4600],["Alo Mecanica","Micaela","86995339017","alta",4400],["TJR Autopeças","Joaquim","86994690339","media",2840],["Chule de Patinha","Alexandre","86994266617","alta",660],["Box São Jorge Autocenter","Nayara","86988409836","baixa",0],["Hamburgueria","Fabiana","86995221414","baixa",0],["Mundo da Ceramica","Luide","86988446093","baixa",0],["Farmacia - Campo Maior","Daniele","86995153477","alta",2960],["Suporte Celular","Junior","86994212028","baixa",2520],["Renata Calçados","Holismar","86994604469","media",2760]].map(function(r){return norm({id:++id,nome:r[0],resp:r[1],tel:r[2],prob:r[3],vt:r[4],ult:h,freq:"semanal"})});save()}
 }
 function autoIndicadores(){
   if(!ind||!ind.ach)return;
@@ -481,9 +494,7 @@ document.addEventListener("click",function(e){
 });
 var IK=["vendas","clientes","cac","vis","ativos","pos"],IN={vendas:"Vendas valor",clientes:"Qnt. clientes",cac:"Vendas aquisição (CAC)",vis:"Vis. contadores",ativos:"Ativos",pos:"Visitas a clientes / pós-venda"},IM={vendas:1,cac:1};
 function fixInd(){if(ind&&!ind.v){ind.v=2;if(ind.plus&&ind.plus[0]&&ind.plus[1]&&!ind.plus[0].valor&&!ind.plus[1].valor){ind.plus[0].valor=200;ind.plus[1].valor=300}}}
-function IND0(){return {v:2,mes:"2026-10",sem:3,min:4,obj:{vendas:20000,clientes:12,cac:5000,vis:40,ativos:96,pos:50},peso:{vendas:100,clientes:70,cac:60,vis:25,ativos:25,pos:20},
-  ach:[{vendas:4880,clientes:1,cac:800,vis:1,ativos:7,pos:0},{vendas:7800,clientes:2,cac:1500,vis:8,ativos:18,pos:9},{vendas:5260,clientes:0,cac:1300,vis:10,ativos:14,pos:10},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}],
-  plus:[{meta:25000,valor:200},{meta:30000,valor:300}]}}
+function IND0(){var mes=iso(new Date()).slice(0,7);return {v:2,mes:mes,sem:0,min:4,obj:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},peso:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},ach:[{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}],plus:[]}}
 function iv(k){return ind.ach.reduce(function(a,w){return a+(+w[k]||0)},0)}
 function wobj(k,w){var d=0;for(var i=0;i<w;i++)d+=+ind.ach[i][k]||0;return Math.max(0,ind.obj[k]-d)/(4-w)}
 function fmI(k,v){return IM[k]?brl.format(v):(Math.round(v*10)/10).toLocaleString("pt-BR")}
@@ -767,7 +778,10 @@ $("backupJson").onclick=backupCompleto;
 function openMenu(){$("menudrawer").classList.add("open");$("menudrawer").setAttribute("aria-hidden","false");$("menushade").hidden=false;$("menutoggle").setAttribute("aria-expanded","true")}
 function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").setAttribute("aria-hidden","true");$("menushade").hidden=true;$("menutoggle").setAttribute("aria-expanded","false")}
 $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade").onclick=closeMenu;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
-$("evodata").value=iso(new Date());load();render();initDb();
+$("evodata").value=iso(new Date());
+var pipelineStarted=false;
+window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();render();initDb()};
+window.__pipelineResetState=function(){data=[];meta={meta:0};ind=IND0();atv=[];contadores=[];visitasClientes=[];evo={};render()};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 
@@ -775,64 +789,53 @@ if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA7TbtmQw2dEBa1V9iNXgdhdSkYSCyMU5M",
-  authDomain: "pipeline-softcom.firebaseapp.com",
-  projectId: "pipeline-softcom",
-  storageBucket: "pipeline-softcom.firebasestorage.app",
-  messagingSenderId: "118247569716",
-  appId: "1:118247569716:web:913b112c90ac3a67f5cd61"
-};
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
-const provider=new GoogleAuthProvider();
-const login=document.getElementById("firebaseLogin");
-const logout=document.getElementById("firebaseLogout");
-const status=document.getElementById("firebaseStatus");
-let cloudRef=null, cloudReady=false, saving=false;
-function show(t){if(status)status.textContent=t;if(window.stat)window.stat(t)}
+const firebaseConfig={apiKey:"AIzaSyA7TbtmQw2dEBa1V9iNXgdhdSkYSCyMU5M",authDomain:"pipeline-softcom.firebaseapp.com",projectId:"pipeline-softcom",storageBucket:"pipeline-softcom.firebasestorage.app",messagingSenderId:"118247569716",appId:"1:247569716:web:913b112c90ac3a67f5cd61"};
+firebaseConfig.appId="1:118247569716:web:913b112c90ac3a67f5cd61";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();
+const login=document.getElementById("firebaseLogin"),googleLogin=document.getElementById("googleLogin"),logout=document.getElementById("firebaseLogout"),status=document.getElementById("firebaseStatus"),loginStatus=document.getElementById("loginStatus");
+let cloudRef=null,cloudReady=false,saving=false,activating=false;
+function show(t){if(status)status.textContent=t;if(loginStatus)loginStatus.textContent=t;if(window.stat)window.stat(t)}
+function revealApp(){document.body.classList.remove("auth-locked")}
+function lockApp(){document.body.classList.add("auth-locked")}
+function hasLocalRecords(j){return !!(j.data?.length||j.atv?.length||j.contadores?.length||j.visitasClientes?.length||Object.keys(j.evo||{}).length)}
 async function activate(user){
+ if(activating)return;activating=true;
+ try{
+  window.__pipelineStart();
   cloudRef=doc(db,"users",user.uid,"pipeline","state");
-  const snap=await getDoc(cloudRef);
-  const local=window.__pipelineGetState();
+  const snap=await getDoc(cloudRef),owner=localStorage.getItem("pipeline_owner_uid"),local=window.__pipelineGetState();
   if(snap.exists()){
-    const choice=confirm("Já existe um backup na nuvem desta conta. OK = baixar os dados da nuvem para este aparelho. Cancelar = manter os dados deste aparelho e enviar uma cópia para a nuvem.");
-    if(choice){
-      const payload=snap.data().json;
-      window.__pipelineApplyState(typeof payload==="string"?JSON.parse(payload):payload);
-      show("Dados da nuvem carregados neste aparelho.");
-    }else{
-      const replace=confirm("Confirma enviar os dados atuais deste aparelho para a nuvem, substituindo a cópia que já existe?");
-      if(!replace){show("Sincronização pausada. Nenhum dado foi alterado.");cloudRef=null;cloudReady=false;return;}
-      await setDoc(cloudRef,{json:JSON.stringify(local),updatedAt:new Date().toISOString()});
-      show("Dados deste aparelho enviados para a nuvem.");
-    }
+   const payload=snap.data().json;
+   window.__pipelineApplyState(typeof payload==="string"?JSON.parse(payload):payload);
+   show("Dados da sua conta carregados com segurança.");
+  }else if(owner&&owner!==user.uid){
+   window.__pipelineResetState();
+   await setDoc(cloudRef,{json:JSON.stringify(window.__pipelineGetState()),updatedAt:new Date().toISOString()});
+   show("Conta nova. Seu espaço de trabalho está pronto.");
+  }else if(hasLocalRecords(local)){
+   if(confirm("Encontramos registros salvos neste aparelho que ainda não estão na nuvem desta conta. Deseja enviar esses dados para sua conta Google?")){
+    await setDoc(cloudRef,{json:JSON.stringify(local),updatedAt:new Date().toISOString()});show("Seus registros foram enviados para a nuvem.");
+   }else{
+    cloudRef=null;cloudReady=false;show("Você entrou. Os dados locais foram mantidos, mas a sincronização ainda não foi ativada.");
+    localStorage.setItem("pipeline_owner_uid",user.uid);revealApp();return;
+   }
   }else{
-    const ok=confirm("Ainda não há dados na nuvem para esta conta. Deseja enviar agora os dados deste aparelho para iniciar a sincronização?");
-    if(!ok){show("Conta conectada, mas migração não realizada. Seus dados locais foram preservados.");cloudRef=null;cloudReady=false;return;}
-    await setDoc(cloudRef,{json:JSON.stringify(local),updatedAt:new Date().toISOString()});
-    show("Primeira cópia enviada para a nuvem.");
+   await setDoc(cloudRef,{json:JSON.stringify(local),updatedAt:new Date().toISOString()});
+   show("Conta pronta. Comece cadastrando seus primeiros registros.");
   }
+  localStorage.setItem("pipeline_owner_uid",user.uid);
   cloudReady=true;
-  window.__pipelineCloudSave=async function(){
-    if(!cloudReady||!cloudRef||saving)return;
-    saving=true;
-    try{await setDoc(cloudRef,{json:JSON.stringify(window.__pipelineGetState()),updatedAt:new Date().toISOString()});show("Sincronizado na nuvem · dados também salvos neste aparelho.");}
-    finally{saving=false;}
-  };
+  window.__pipelineCloudSave=async function(){if(!cloudReady||!cloudRef||saving)return;saving=true;try{await setDoc(cloudRef,{json:JSON.stringify(window.__pipelineGetState()),updatedAt:new Date().toISOString()});show("Sincronizado na nuvem.")}finally{saving=false}};
+  revealApp();
+ }catch(e){cloudReady=false;cloudRef=null;show("Não foi possível carregar seus dados: "+(e.code||e.message));lockApp()}
+ finally{activating=false}
 }
-login?.addEventListener("click",async()=>{
-  login.disabled=true;show("Abrindo login Google...");
-  try{const result=await signInWithPopup(auth,provider);await activate(result.user);}
-  catch(e){show("Não foi possível conectar: "+(e.code||e.message));}
-  finally{login.disabled=false;}
-});
-logout?.addEventListener("click",async()=>{await signOut(auth);cloudReady=false;cloudRef=null;window.__pipelineCloudSave=null;show("Saiu da conta. Os dados locais continuam neste aparelho.");});
-onAuthStateChanged(auth,user=>{
-  if(user){if(login)login.textContent="Conta conectada: "+(user.email||"Google");if(logout)logout.style.display="block";}
-  else{if(login)login.textContent="Entrar e ativar sincronização";if(logout)logout.style.display="none";}
+async function doLogin(){googleLogin.disabled=true;show("Abrindo acesso Google...");try{await signInWithPopup(auth,provider)}catch(e){show("Não foi possível entrar: "+(e.code||e.message))}finally{googleLogin.disabled=false}}
+googleLogin?.addEventListener("click",doLogin);login?.addEventListener("click",doLogin);
+logout?.addEventListener("click",async()=>{await signOut(auth);cloudReady=false;cloudRef=null;window.__pipelineCloudSave=null;lockApp();show("Você saiu da conta.")});
+onAuthStateChanged(auth,async user=>{
+ if(user){if(login)login.textContent="Conta: "+(user.email||"Google");if(logout)logout.style.display="block";await activate(user)}
+ else{cloudReady=false;cloudRef=null;window.__pipelineCloudSave=null;if(login)login.textContent="Entrar com Google";if(logout)logout.style.display="none";lockApp();show("Faça login com sua conta Google para acessar o Pipeline.")}
 });
 </script>
 </body>
