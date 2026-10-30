@@ -136,6 +136,7 @@ textarea.big{min-height:160px}
 <aside id="menudrawer" class="menu-drawer" aria-label="Menu principal" aria-hidden="true">
   <div class="menu-head"><strong>Menu principal</strong><button type="button" id="menuclose" aria-label="Fechar menu">✕</button></div>
   <nav id="menulinks" class="menu-links" aria-label="Navegação"></nav>
+  <div style="padding:12px 16px;border-top:1px solid var(--line)"><button type="button" id="backupJson" class="pri" style="width:100%">Baixar backup completo (JSON)</button><p class="sub" style="font-size:12px;margin:8px 0 0">Guarde este arquivo para proteger todos os registros do aplicativo.</p></div>
 </aside>
 <main>
   <div class="app-header"><button type="button" class="menu-toggle" id="menutoggle" aria-label="Abrir menu" aria-expanded="false">☰</button><div><h1>Pipeline da semana</h1><p class="sub" style="margin:2px 0 0">Gestão comercial</p></div></div>
@@ -730,6 +731,16 @@ $("xl").onclick=async function(){
     var fn="pipeline-"+iso(new Date())+".xlsx";if(dl)await dl.save({filename:fn,data:buf});else{var al=document.createElement("a");al.href=URL.createObjectURL(new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));al.download=fn;document.body.appendChild(al);al.click();al.remove()}stat("Planilha gerada. Confira a pasta de downloads.")
   }catch(e){stat(e&&e.code=="declined"?"Download cancelado.":"Não foi possível gerar o Excel. Use “Exportar para planilha (CSV)”.")}
 };
+function backupCompleto(){
+  try{
+    var pacote={app:"Pipeline da semana",formato:"pipeline-backup",versao:1,exportadoEm:new Date().toISOString(),dados:{data:data,meta:meta,ind:ind,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo}};
+    var blob=new Blob([JSON.stringify(pacote,null,2)],{type:"application/json"});
+    var url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download="pipeline-backup-"+iso(new Date())+".json";document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url)},1500);stat("Backup completo gerado. Confira a pasta de downloads.");
+  }catch(e){stat("Não foi possível gerar o backup completo.");}
+}
+$("backupJson").onclick=backupCompleto;
 function openMenu(){$("menudrawer").classList.add("open");$("menudrawer").setAttribute("aria-hidden","false");$("menushade").hidden=false;$("menutoggle").setAttribute("aria-expanded","true")}
 function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").setAttribute("aria-hidden","true");$("menushade").hidden=true;$("menutoggle").setAttribute("aria-expanded","false")}
 $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade").onclick=closeMenu;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
