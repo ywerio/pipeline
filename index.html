@@ -789,8 +789,7 @@ if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
-const firebaseConfig={apiKey:"AIzaSyA7TbtmQw2dEBa1V9iNXgdhdSkYSCyMU5M",authDomain:"pipeline-softcom.firebaseapp.com",projectId:"pipeline-softcom",storageBucket:"pipeline-softcom.firebasestorage.app",messagingSenderId:"118247569716",appId:"1:247569716:web:913b112c90ac3a67f5cd61"};
-firebaseConfig.appId="1:118247569716:web:913b112c90ac3a67f5cd61";
+const firebaseConfig={apiKey:"AIzaSyA7TbtmQw2dEBa1V9iNXgdhdSkYSCyMU5M",authDomain:"pipeline-softcom.firebaseapp.com",projectId:"pipeline-softcom",storageBucket:"pipeline-softcom.firebasestorage.app",messagingSenderId:"118247569716",appId:"1:118247569716:web:913b112c90ac3a67f5cd61"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();
 const login=document.getElementById("firebaseLogin"),googleLogin=document.getElementById("googleLogin"),logout=document.getElementById("firebaseLogout"),status=document.getElementById("firebaseStatus"),loginStatus=document.getElementById("loginStatus");
 let cloudRef=null,cloudReady=false,saving=false,activating=false;
