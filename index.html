@@ -199,14 +199,10 @@ body:not(.auth-locked) #loginScreen{display:none!important}
   <section id="visclientesvv" hidden><div class="meta" id="vch"></div><button class="pri" id="novoVisCliente" style="margin-bottom:10px">+ Registrar visita a cliente</button><input class="search" id="qvc" type="search" placeholder="Pesquisar cliente, contato ou endereço…" aria-label="Pesquisar visitas a clientes"><div id="vcl"></div></section>
   <section id="agendavv" hidden><div class="bi-wrap"><div class="bi-hero"><div><h2>Agenda diária</h2><p>Veja nominalmente o que foi realizado em cada data.</p></div></div><div class="bi-panel"><label>Escolha o dia para consultar<input type="date" id="agendadata"></label><div id="agendaresumo" class="bi-kpis" style="margin-top:12px"></div><div id="agendalist"></div></div></div></section>
   <section id="evovv" hidden><div class="bi-wrap"><div class="bi-hero"><div><h2>Evolução do trabalho</h2><p>Acompanhe sua produção diária e mensal.</p></div></div>
-    <div class="bi-panel"><label>Período<select id="evoper"><option value="week">Semanal (segunda a domingo)</option><option value="month">Mensal (mês vigente)</option></select></label>
+    <div class="bi-panel"><label>Período<select id="evoper"><option value="week">Semanal (semana vigente)</option><option value="custom">Personalizado (datas)</option><option value="month">Mensal comparativo</option></select></label><div id="evocustom" class="g2" hidden><label>Data inicial<input type="date" id="evostart"></label><label>Data final<input type="date" id="evoend"></label></div><label id="evoyearwrap" hidden>Ano<select id="evoyear"></select></label>
     <label>Indicador<select id="evomet"><option value="ativos">Ativos cadastrados</option><option value="contadores">Visitas a contadores</option><option value="clientes">Visitas a clientes</option><option value="importacao">Valor de implantação (R$)</option><option value="vendas">Valor de vendas (R$)</option></select></label>
     <div id="evokpi" class="bi-kpis" style="margin-top:12px"></div><div id="evograf" style="margin-top:14px"></div></div>
-    <div class="bi-panel"><h3>Registrar resultado do dia</h3><p class="bi-foot">Informe os números do dia. O sistema também contará os ativos e contadores registrados automaticamente.</p>
-    <label>Data<input type="date" id="evodata"></label>
-    <div class="g2"><label>Visitas a clientes<input type="number" min="0" step="1" id="eclientes" value="0"></label><label>Valor de implantação (R$)<input type="number" min="0" step="0.01" id="eimportacao" value="0"></label></div>
-    <label>Valor de vendas (R$)<input type="number" min="0" step="0.01" id="evendas" value="0"></label>
-    <button class="pri" id="salvarEvo">Salvar resultado diário</button></div></div></section>
+    </div></section>
 <section id="bivv" hidden>
   <div class="bi-wrap">
     <div class="bi-hero"><div><h2>Painel executivo</h2><p>Visão dinâmica do funil comercial, prospecção e conversões.</p></div><button type="button" id="biRefresh">Atualizar painel</button></div>
@@ -217,7 +213,7 @@ body:not(.auth-locked) #loginScreen{display:none!important}
 </section>
   <div class="tools"><button class="pri" id="xl">Baixar planilha Excel (BI)</button><button id="exp">Exportar para planilha (CSV)</button></div>
 </main>
-<div class="fabs"><button class="fab2" id="novoa">+ Novo ativo</button><button class="pri fab2" id="novo">+ Novo cliente</button></div>
+<div class="fabs"><button class="fab2" id="novoa">+ Novo ativo</button></div>
 
 <dialog id="dlg">
 <form id="f" method="dialog" onsubmit="return false">
@@ -302,7 +298,7 @@ function esc(s){var e=document.createElement("div");e.textContent=s;return e.inn
 function norm(c){return Object.assign({end:"",link:"",resp:"",vt:0,mensal:0,upg:0,impl:0,tel:"",st:"ativo",prevf:"",motivo:"",fechadoEm:"",hist:[],obs:""},c)}
 function load(){
   try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0);var cv0=localStorage.getItem(KEY+"c");if(cv0)contadores=JSON.parse(cv0);var vc0=localStorage.getItem(KEY+"vc");if(vc0)visitasClientes=JSON.parse(vc0);var ev0=localStorage.getItem(KEY+"e");if(ev0)evo=JSON.parse(ev0)}catch(e){}
-  if(!ind)ind=IND0();fixInd();
+  if(!ind)ind=IND0();fixInd();ensureIndMonth();
 }
 function autoIndicadores(){
   if(!ind||!ind.ach)return;
@@ -329,10 +325,10 @@ function autoIndicadores(){
 function save(){try{autoIndicadores();localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"e",JSON.stringify(evo))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
 function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
 function render(){
-  var P=view=="pipe";
-  ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("atvv").hidden=view!="atv";$("contvv").hidden=view!="cont";$("visclientesvv").hidden=view!="visclientes";$("evovv").hidden=view!="evo";$("agendavv").hidden=view!="agenda";$("bivv").hidden=view!="bi";
-   $("tabs").innerHTML=[["pipe","⌂ Visão geral e potenciais"],["atv","✓ Ativos ("+atv.filter(function(a){return !a.conv}).length+")"],["agenda","▦ Agenda diária"],["cont","♙ Contadores ("+contadores.length+")"],["visclientes","♧ Visitas a clientes ("+visitasClientes.length+")"],["evo","↗ Evolução"],["bi","▤ Painel BI"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");$("menulinks").innerHTML=$("tabs").innerHTML;
-  if(view=="agenda"){renderAgenda();return}if(view=="atv"){renderAtv();return}if(view=="cont"){renderContadores();return}if(view=="visclientes"){renderVisitasClientes();return}if(view=="evo"){renderEvo();return}if(view=="bi"){renderBI();return}
+  ensureIndMonth();var P=view=="pipe",A=view=="atv"||view=="atvprev";
+  ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("atvv").hidden=!A;$("contvv").hidden=view!="cont";$("visclientesvv").hidden=view!="visclientes";$("evovv").hidden=view!="evo";$("agendavv").hidden=view!="agenda";$("bivv").hidden=view!="bi";
+   $("tabs").innerHTML=[["pipe","⌂ Visão geral e potenciais"],["atv","✓ Ativos ("+atv.filter(function(a){return !a.conv}).length+")"],["agenda","▦ Agenda diária"],["cont","♙ Contadores ("+contadores.length+")"],["visclientes","♧ Visitas a clientes ("+visitasClientes.length+")"],["evo","↗ Evolução"],["bi","▤ Painel BI"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");$("menulinks").innerHTML=$("tabs").innerHTML+'<div class="line" style="padding:8px 4px 0;font-weight:800">Ativos</div><button class="chip" data-tab="atvprev" aria-pressed="'+(view=="atvprev")+'">Ativos registrados · semanas anteriores</button>';
+  if(view=="agenda"){renderAgenda();return}if(view=="atv"||view=="atvprev"){renderAtv();return}if(view=="cont"){renderContadores();return}if(view=="visclientes"){renderVisitasClientes();return}if(view=="evo"){renderEvo();return}if(view=="bi"){renderBI();return}
   var hoje=parse(iso(new Date())),at=data.filter(function(c){return c.st=="ativo"});
   $("hoje").textContent="Hoje é "+hoje.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
   var tot=0,pond=0,cnt={alta:0,media:0,baixa:0},vals={alta:0,media:0,baixa:0};
@@ -434,7 +430,7 @@ function abrir(id){
 }
 ["mensal","upg","impl","ult","freq","st"].forEach(function(i){$(i).addEventListener("input",calc)});
 $("q").addEventListener("input",function(e){busca=e.target.value.trim();render();$("q").focus()});
-$("novo").onclick=function(){abrir(null)};$("novoa").onclick=function(){abrirAtv(null)};
+$("novoa").onclick=function(){abrirAtv(null)};
 $("cancel").onclick=function(){$("dlg").close()};
 $("save").onclick=function(){
   if(!$("nome").value.trim()||!$("ult").value){$("f").reportValidity();return}
@@ -476,6 +472,7 @@ document.addEventListener("click",function(e){
   else if(t.id=="bi")openInd();
   else if(id=t.getAttribute("data-ares"))pickRes(+id);
   else if(t.getAttribute("data-tab")){view=t.getAttribute("data-tab");closeMenu();render()}
+   else if(t.id=="voltarAtv"){view="atv";render()}
   else if(id=t.getAttribute("data-sel")){selA[id]=t.checked;renderAtv()}
   else if(id=t.getAttribute("data-aed"))abrirAtv(id);
   else if(id=t.getAttribute("data-avisit"))registrarVisitaAtivo(id);
@@ -495,6 +492,7 @@ document.addEventListener("click",function(e){
 var IK=["vendas","clientes","cac","vis","ativos","pos"],IN={vendas:"Vendas valor",clientes:"Qnt. clientes",cac:"Vendas aquisição (CAC)",vis:"Vis. contadores",ativos:"Ativos",pos:"Visitas a clientes / pós-venda"},IM={vendas:1,cac:1};
 function fixInd(){if(ind&&!ind.v){ind.v=2;if(ind.plus&&ind.plus[0]&&ind.plus[1]&&!ind.plus[0].valor&&!ind.plus[1].valor){ind.plus[0].valor=200;ind.plus[1].valor=300}}}
 function IND0(){var mes=iso(new Date()).slice(0,7);return {v:2,mes:mes,sem:0,min:4,obj:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},peso:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},ach:[{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}],plus:[]}}
+function ensureIndMonth(){var mes=iso(new Date()).slice(0,7);if(!ind||!ind.ach)return;if(ind.mes!==mes){ind.mes=mes;ind.sem=Math.min(3,Math.floor((new Date().getDate()-1)/7));ind.ach=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});delete ind.autoSnapshot;}}
 function iv(k){return ind.ach.reduce(function(a,w){return a+(+w[k]||0)},0)}
 function wobj(k,w){var d=0;for(var i=0;i<w;i++)d+=+ind.ach[i][k]||0;return Math.max(0,ind.obj[k]-d)/(4-w)}
 function fmI(k,v){return IM[k]?brl.format(v):(Math.round(v*10)/10).toLocaleString("pt-BR")}
@@ -533,9 +531,9 @@ $("nm").onclick=function(){
 var selA={},qa="",ordI={alta:0,media:1,baixa:2},gps={lat:null,lng:null,acc:null},edA=null,convQ=[],convFrom=null,convOk=false;
 function mapUrl(a){if(a.link&&/^https?:\/\//.test(a.link))return a.link;if(a.lat!=null&&a.lng!=null)return "https://www.google.com/maps?q="+a.lat+","+a.lng;if(a.end)return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a.end+" "+a.loja);return ""}
 function renderAtv(){
-  var ws=semana(),mes=iso(new Date()).slice(0,7),ns=atv.filter(function(a){return a.data>=ws}).length,nm=atv.filter(function(a){return a.data.slice(0,7)==mes}).length,pend=atv.filter(function(a){return !a.conv}).length,sel=Object.keys(selA).filter(function(k){return selA[k]}).length;
-  $("atvh").innerHTML='<b>Ativos de prospecção</b><div class="pay num">Visitados nesta semana: <b>'+ns+'</b> · no mês: <b>'+nm+'</b> · aguardando conversão: <b>'+pend+'</b></div><button class="pri" id="cvs">Converter selecionados ('+sel+')</button>';
-  var q=qa.toLowerCase(),L=atv.filter(function(a){return !q||(a.loja+" "+a.resp+" "+a.end).toLowerCase().indexOf(q)>=0}).sort(function(x,y){return (x.conv?1:0)-(y.conv?1:0)||ordI[x.int]-ordI[y.int]||(x.data<y.data?1:-1)});
+  var ws=semana(),mes=iso(new Date()).slice(0,7),anteriores=view=="atvprev",ns=atv.filter(function(a){return a.data>=ws}).length,nm=atv.filter(function(a){return a.data.slice(0,7)==mes}).length,pend=atv.filter(function(a){return !a.conv}).length,sel=Object.keys(selA).filter(function(k){return selA[k]}).length;
+  $("atvh").innerHTML=anteriores?'<b>Ativos registrados · semanas anteriores</b><div class="line">Histórico completo dos ativos cadastrados antes da semana vigente.</div><button id="voltarAtv">Voltar aos ativos da semana</button>':'<b>Ativos de prospecção</b><div class="pay num">Visitados nesta semana: <b>'+ns+'</b> · no mês: <b>'+nm+'</b> · aguardando conversão: <b>'+pend+'</b></div><button class="pri" id="cvs">Converter selecionados ('+sel+')</button>';
+  var q=qa.toLowerCase(),L=atv.filter(function(a){return anteriores?a.data<ws:a.data>=ws}).filter(function(a){return !q||(a.loja+" "+a.resp+" "+a.end).toLowerCase().indexOf(q)>=0}).sort(function(x,y){return (x.conv?1:0)-(y.conv?1:0)||ordI[x.int]-ordI[y.int]||(x.data<y.data?1:-1)});
   $("atvl").innerHTML=L.length?L.map(function(a){var u=mapUrl(a),t=(a.tel||"").replace(/\D/g,"");
     return '<article class="card"><div class="top"><label class="chk"><input type="checkbox" data-sel="'+a.id+'"'+(selA[a.id]?" checked":"")+(a.conv?" disabled":"")+' aria-label="Selecionar"><span class="name">'+esc(a.loja)+'</span></label>'+(a.conv?'<span class="badge b-ganho">Convertido</span>':'<span class="badge b-'+a.int+'">'+NIV[a.int].split(" ")[0]+'</span>')+'</div>'+
     '<div class="line">'+(a.resp?"Responsável: "+esc(a.resp):"Sem responsável")+(a.tel?" · "+esc(a.tel):"")+'</div>'+
@@ -659,7 +657,7 @@ function nextConv(){
   if(!a||a.conv){if(convQ.length)nextConv();return}
   convFrom=a.id;abrir(null);
   $("ft").textContent="Converter em potencial cliente";
-  $("nome").value=a.loja;$("resp").value=a.resp;$("tel").value=a.tel;$("prob").value=a.int;$("obs").value=a.obs;calc()}
+  $("nome").value=a.loja;$("resp").value=a.resp;$("tel").value=a.tel;$("prob").value=a.int;$("obs").value=a.obs;$("ult").value=iso(new Date());$("freq").value="semanal";$("mensal").value=0;$("upg").value=0;$("impl").value=0;$("prev_f").value="";$("st").value="ativo";calc()}
 $("dlg").addEventListener("close",function(){var ok=convOk;convOk=false;if(ok&&convQ.length)nextConv();else{convQ=[];convFrom=null}});
 var pt=null,DB=null;
 function stat(t){var e=$("stat");if(e)e.textContent=t}
@@ -780,7 +778,7 @@ function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").se
 $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade").onclick=closeMenu;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
 $("evodata").value=iso(new Date());
 var pipelineStarted=false;
-window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();render();initDb()};
+window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
 window.__pipelineResetState=function(){data=[];meta={meta:0};ind=IND0();atv=[];contadores=[];visitasClientes=[];evo={};render()};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
