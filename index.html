@@ -770,7 +770,6 @@ $("backupJson").onclick=backupCompleto;
 function openMenu(){$("menudrawer").classList.add("open");$("menudrawer").setAttribute("aria-hidden","false");$("menushade").hidden=false;$("menutoggle").setAttribute("aria-expanded","true")}
 function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").setAttribute("aria-hidden","true");$("menushade").hidden=true;$("menutoggle").setAttribute("aria-expanded","false")}
 $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade").onclick=closeMenu;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
-$("evodata").value=iso(new Date());
 var pipelineStarted=false;
 window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
 window.__pipelineResetState=function(){data=[];meta={meta:0};ind=IND0();atv=[];contadores=[];visitasClientes=[];evo={};render()};
