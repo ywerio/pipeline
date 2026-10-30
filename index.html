@@ -203,6 +203,7 @@ body:not(.auth-locked) #loginScreen{display:none!important}
     <label>Indicador<select id="evomet"><option value="ativos">Ativos cadastrados</option><option value="contadores">Visitas a contadores</option><option value="clientes">Visitas a clientes</option><option value="importacao">Valor de implantação (R$)</option><option value="vendas">Valor de vendas (R$)</option></select></label>
     <div id="evokpi" class="bi-kpis" style="margin-top:12px"></div><div id="evograf" style="margin-top:14px"></div></div>
     </div></section>
+<section id="comvv" hidden><div class="bi-wrap"><div class="bi-hero"><div><h2>Comissões</h2><p>Previsão, geração e recebimentos das suas comissões.</p></div><button type="button" class="pri" id="comAdd">+ Lançamento manual</button></div><div class="bi-panel"><div class="g2"><label>Mês de referência<input type="month" id="comMes"></label><label>Exibir<select id="comFiltro"><option value="todos">Todas</option><option value="pendente">A receber</option><option value="recebido">Recebidas</option></select></label></div><div id="comKpis" class="bi-kpis"></div><div id="comLista"></div></div></div></section>
 <section id="bivv" hidden>
   <div class="bi-wrap">
     <div class="bi-hero"><div><h2>Painel executivo</h2><p>Visão dinâmica do funil comercial, prospecção e conversões.</p></div><button type="button" id="biRefresh">Atualizar painel</button></div>
@@ -226,7 +227,7 @@ body:not(.auth-locked) #loginScreen{display:none!important}
     <label>Mensalidade (R$)<input id="mensal" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>
     <label>Upgrade na mensalidade (R$)<input id="upg" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>
   </div>
-  <label>Implantação (R$)<input id="impl" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>
+  <label>Implantação (R$)<input id="impl" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label><div class="g2"><label>Data da instalação<input id="instalacao" type="date"></label><label>Pagamento da 1ª mensalidade<input id="primeiroPgPago" type="date"></label></div><p class="sub">A instalação prevista é calculada em até 5 dias úteis após o fechamento. A primeira mensalidade vence 30 dias após a instalação. Preencha as datas reais quando ocorrerem.</p>
   <div class="preview">Total do contrato (12 meses + implantação)<b class="num" id="prev">R$ 0,00</b></div>
   <label>WhatsApp (com DDD)<input id="tel" type="tel" inputmode="tel" placeholder="11999998888"></label>
   <div class="g2">
@@ -277,7 +278,7 @@ body:not(.auth-locked) #loginScreen{display:none!important}
 <dialog id="dlg8"><form onsubmit="return false"><h2 id="vctitle">Registrar visita a cliente</h2><label>Nome do cliente / estabelecimento<input id="vccliente" maxlength="100" required placeholder="Nome do cliente"></label><label>Nome do contato<input id="vcnome" maxlength="80" placeholder="Nome do responsável"></label><label>Telefone / WhatsApp<input id="vctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="vcrua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="vcbairro" maxlength="80"></label><label>Cidade<input id="vccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="vclink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="vccancel">Cancelar</button><button type="button" class="pri" id="vcsave">Salvar visita</button></div></form></dialog>
 <dialog id="dlg7"><form onsubmit="return false"><h2 id="ctitle">Novo contador</h2><label>Nome do escritório<input id="cescritorio" maxlength="100" required placeholder="Ex.: Escritório Contábil Silva"></label><label>Nome do contador<input id="cnome" maxlength="80" placeholder="Nome do contador"></label><label>Telefone / WhatsApp<input id="ctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="crua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="cbairro" maxlength="80"></label><label>Cidade<input id="ccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="clink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="ccancel">Cancelar</button><button type="button" class="pri" id="csave">Salvar contador</button></div></form></dialog>
 <script>
-var KEY="pipeline_v3",ind=null,atv=[],contadores=[],visitasClientes=[],evo={},view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null;
+var KEY="pipeline_v3",ind=null,atv=[],contadores=[],visitasClientes=[],evo={},comissoes=[],view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null;
 var NIV={alta:"Alta probabilidade",media:"Média probabilidade",baixa:"Baixa probabilidade"};
 var WA_MENSAGEM="Olá, tudo bem? 😊\n\nSou Vargas, consultor comercial da Softcom Tecnologia.\n\nTrabalho com uma solução de gestão moderna, com banco de dados em nuvem e garantia de um sistema sempre atualizado e preparado para acompanhar as mudanças e exigências das regras fiscais.\n\nGostaria de saber se podemos agendar uma breve demonstração para você conhecer a solução e ver como ela pode ajudar no dia a dia da sua empresa.\n\nO que acha? 🤝";
 var W={alta:.8,media:.4,baixa:.1};
@@ -295,9 +296,9 @@ function proximo(c){var d=parse(c.ult);
 function total(c){var t=(c.mensal+c.upg)*12+c.impl;return t||c.vt||0}
 function fd(d){return d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})}
 function esc(s){var e=document.createElement("div");e.textContent=s;return e.innerHTML}
-function norm(c){return Object.assign({end:"",link:"",resp:"",vt:0,mensal:0,upg:0,impl:0,tel:"",st:"ativo",prevf:"",motivo:"",fechadoEm:"",hist:[],obs:""},c)}
+function norm(c){return Object.assign({end:"",link:"",resp:"",vt:0,mensal:0,upg:0,impl:0,instalacao:"",primeiroPgPago:"",tel:"",st:"ativo",prevf:"",motivo:"",fechadoEm:"",hist:[],obs:""},c)}
 function load(){
-  try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0);var cv0=localStorage.getItem(KEY+"c");if(cv0)contadores=JSON.parse(cv0);var vc0=localStorage.getItem(KEY+"vc");if(vc0)visitasClientes=JSON.parse(vc0);var ev0=localStorage.getItem(KEY+"e");if(ev0)evo=JSON.parse(ev0)}catch(e){}
+  try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0);var cv0=localStorage.getItem(KEY+"c");if(cv0)contadores=JSON.parse(cv0);var vc0=localStorage.getItem(KEY+"vc");if(vc0)visitasClientes=JSON.parse(vc0);var ev0=localStorage.getItem(KEY+"e");if(ev0)evo=JSON.parse(ev0);var cm0=localStorage.getItem(KEY+"com");if(cm0)comissoes=JSON.parse(cm0)}catch(e){}
   if(!ind)ind=IND0();fixInd();ensureIndMonth();
 }
 function autoIndicadores(){
@@ -322,13 +323,13 @@ function autoIndicadores(){
   ind.ach.forEach(function(w,i){["vendas","clientes","vis","ativos","pos"].forEach(function(k){w[k]=(+w[k]||0)+auto[i][k]})});
   ind.autoSnapshot={mes:mes,ach:auto};
 }
-function save(){try{autoIndicadores();localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"e",JSON.stringify(evo))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
+function save(){try{autoIndicadores();localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"e",JSON.stringify(evo));localStorage.setItem(KEY+"com",JSON.stringify(comissoes))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
 function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
 function render(){
   ensureIndMonth();var P=view=="pipe",A=view=="atv"||view=="atvprev";
-  ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("atvv").hidden=!A;$("contvv").hidden=view!="cont";$("visclientesvv").hidden=view!="visclientes";$("evovv").hidden=view!="evo";$("agendavv").hidden=view!="agenda";$("bivv").hidden=view!="bi";
-   $("tabs").innerHTML=[["pipe","⌂ Visão geral e potenciais"],["atv","✓ Ativos ("+atv.filter(function(a){return !a.conv}).length+")"],["agenda","▦ Agenda diária"],["cont","♙ Contadores ("+contadores.length+")"],["visclientes","♧ Visitas a clientes ("+visitasClientes.length+")"],["evo","↗ Evolução"],["bi","▤ Painel BI"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");$("menulinks").innerHTML=$("tabs").innerHTML+'<div class="line" style="padding:8px 4px 0;font-weight:800">Ativos</div><button class="chip" data-tab="atvprev" aria-pressed="'+(view=="atvprev")+'">Ativos registrados · semanas anteriores</button>';
-  if(view=="agenda"){renderAgenda();return}if(view=="atv"||view=="atvprev"){renderAtv();return}if(view=="cont"){renderContadores();return}if(view=="visclientes"){renderVisitasClientes();return}if(view=="evo"){renderEvo();return}if(view=="bi"){renderBI();return}
+  ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("atvv").hidden=!A;$("contvv").hidden=view!="cont";$("visclientesvv").hidden=view!="visclientes";$("evovv").hidden=view!="evo";$("agendavv").hidden=view!="agenda";$("bivv").hidden=view!="bi";$("comvv").hidden=view!="com";
+   $("tabs").innerHTML=[["pipe","⌂ Visão geral e potenciais"],["atv","✓ Ativos ("+atv.filter(function(a){return !a.conv}).length+")"],["agenda","▦ Agenda diária"],["cont","♙ Contadores ("+contadores.length+")"],["visclientes","♧ Visitas a clientes ("+visitasClientes.length+")"],["evo","↗ Evolução"],["bi","▤ Painel BI"],["com","R$ Comissões"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");$("menulinks").innerHTML=$("tabs").innerHTML+'<div class="line" style="padding:8px 4px 0;font-weight:800">Ativos</div><button class="chip" data-tab="atvprev" aria-pressed="'+(view=="atvprev")+'">Ativos registrados · semanas anteriores</button>';
+  if(view=="agenda"){renderAgenda();return}if(view=="atv"||view=="atvprev"){renderAtv();return}if(view=="cont"){renderContadores();return}if(view=="visclientes"){renderVisitasClientes();return}if(view=="evo"){renderEvo();return}if(view=="bi"){renderBI();return}if(view=="com"){renderComissoes();return}
   var hoje=parse(iso(new Date())),at=data.filter(function(c){return c.st=="ativo"});
   $("hoje").textContent="Hoje é "+hoje.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
   var tot=0,pond=0,cnt={alta:0,media:0,baixa:0},vals={alta:0,media:0,baixa:0};
@@ -425,7 +426,7 @@ function calc(){
 function abrir(id){
   editId=id;var c=data.filter(function(x){return x.id==id})[0]||norm({nome:"",prob:"alta",mensal:0,upg:0,impl:0,ult:iso(new Date()),freq:"semanal"});
   $("ft").textContent=id?"Editar cliente":"Novo cliente";
-  $("nome").value=c.nome;$("resp").value=c.resp;$("tel").value=c.tel;$("prob").value=c.prob;$("mensal").value=c.mensal;$("upg").value=c.upg;$("impl").value=c.impl;$("ult").value=c.ult;$("freq").value=c.freq;$("obs").value=c.obs;$("prev_f").value=c.prevf;$("st").value=c.st;$("motivo").value=c.motivo;
+  $("nome").value=c.nome;$("resp").value=c.resp;$("tel").value=c.tel;$("prob").value=c.prob;$("mensal").value=c.mensal;$("upg").value=c.upg;$("impl").value=c.impl;$("instalacao").value=c.instalacao||"";$("primeiroPgPago").value=c.primeiroPgPago||"";$("ult").value=c.ult;$("freq").value=c.freq;$("obs").value=c.obs;$("prev_f").value=c.prevf;$("st").value=c.st;$("motivo").value=c.motivo;
   calc();$("dlg").showModal()
 }
 ["mensal","upg","impl","ult","freq","st"].forEach(function(i){$(i).addEventListener("input",calc)});
@@ -434,7 +435,7 @@ $("novoa").onclick=function(){abrirAtv(null)};
 $("cancel").onclick=function(){$("dlg").close()};
 $("save").onclick=function(){
   if(!$("nome").value.trim()||!$("ult").value){$("f").reportValidity();return}
-  var o={nome:$("nome").value.trim(),resp:$("resp").value.trim(),tel:$("tel").value.trim(),prob:$("prob").value,mensal:+$("mensal").value||0,upg:+$("upg").value||0,impl:+$("impl").value||0,ult:$("ult").value,freq:$("freq").value,obs:$("obs").value.trim(),prevf:$("prev_f").value,st:$("st").value,motivo:$("motivo").value.trim()};
+  var o={nome:$("nome").value.trim(),resp:$("resp").value.trim(),tel:$("tel").value.trim(),prob:$("prob").value,mensal:+$("mensal").value||0,upg:+$("upg").value||0,impl:+$("impl").value||0,instalacao:$("instalacao").value,primeiroPgPago:$("primeiroPgPago").value,ult:$("ult").value,freq:$("freq").value,obs:$("obs").value.trim(),prevf:$("prev_f").value,st:$("st").value,motivo:$("motivo").value.trim()};
   if(editId){data=data.map(function(c){if(c.id!=editId)return c;var n=Object.assign({},c,o);if(n.st=="ganho"&&c.st!="ganho")n.fechadoEm=iso(new Date());return n})}
   else{o.id=Date.now();o=norm(o);if(o.st=="ganho")o.fechadoEm=iso(new Date());
     if(convFrom){var a=atv.filter(function(x){return x.id==convFrom})[0];if(a){o.end=a.end||"";o.link=mapUrl(a);o.hist=[{d:iso(new Date()),t:"Origem: ativo visitado em "+parse(a.data).toLocaleDateString("pt-BR")+(a.end?" · "+a.end:""),k:"obs"}];a.conv=true;a.cid=o.id;convOk=true;delete selA[a.id]}}
@@ -701,10 +702,10 @@ $("novoVisCliente").onclick=function(){abrirVisitaCliente(null)};$("vccancel").o
 $("vcsave").onclick=function(){var nome=$("vccliente").value.trim();if(!nome){$("vccliente").focus();return}var old=visitasClientes.filter(function(c){return c.id==editVisitaId})[0],o={cliente:nome,nome:$("vcnome").value.trim(),tel:$("vctel").value.trim(),rua:$("vcrua").value.trim(),bairro:$("vcbairro").value.trim(),cidade:$("vccidade").value.trim(),link:$("vclink").value.trim(),data:old?old.data:iso(new Date()),visitas:old?(old.visitas||[{data:old.data,hora:old.hora||"",comentario:old.comentario||"Visita inicial"}]):[{data:iso(new Date()),hora:new Date().toTimeString().slice(0,5),comentario:"Visita inicial"}]};if(editVisitaId)visitasClientes=visitasClientes.map(function(c){return c.id==editVisitaId?Object.assign({},c,o):c});else{o.id=Date.now();visitasClientes.push(o)}save();$("dlg8").close();render()};
 function pushDb(){if(window.__pipelineCloudSave)window.__pipelineCloudSave().catch(function(){stat("Falha na nuvem; seus dados continuam salvos neste aparelho")})}
 function initDb(){stat("Salvo neste aparelho · entre na conta para ativar a nuvem")}
-window.__pipelineGetState=function(){return {data:data,meta:meta,ind:ind,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,v:5}};
+window.__pipelineGetState=function(){return {data:data,meta:meta,ind:ind,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,comissoes:comissoes,v:6}};
 window.__pipelineApplyState=function(j){
   if(!j||!Array.isArray(j.data))throw new Error("Backup da nuvem inválido");
-  data=j.data.map(norm);meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;
+  data=j.data.map(norm);meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;if(Array.isArray(j.comissoes))comissoes=j.comissoes;
   localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"e",JSON.stringify(evo));render();
 };
 function build(){
