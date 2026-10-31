@@ -304,7 +304,7 @@ function autoIndicadores(){
  function bucket(ds){if(!ds||ds.slice(0,7)!=mes)return -1;var day=+ds.slice(8,10);return day<=7?0:day<=14?1:day<=21?2:3}
  function add(k,ds,v){var b=bucket(ds);if(b>=0)auto[b][k]+=(+v||0)}
  contadores.forEach(function(c){(c.visitas||[{data:c.data}]).forEach(function(v){add("vis",v.data,1)})});
- atv.forEach(function(a){add("ativos",a.data,1)});
+ atv.forEach(function(a){add("ativos",atvCriadoEm(a),1)});
  visitasClientes.forEach(function(c){(c.visitas||[{data:c.data}]).forEach(function(v){add("pos",v.data,1)})});
  data.forEach(function(c){if(c.st=="ganho"&&c.fechadoEm)add("clientes",c.fechadoEm,1)});
  var old=ind.autoSnapshot;
@@ -704,7 +704,7 @@ $("csave").onclick=function(){var es=$("cescritorio").value.trim();if(!es){$("ce
 $("qc").addEventListener("input",renderContadores);
 function weekStart(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate()),n=x.getDay()||7;x.setDate(x.getDate()-n+1);return x}
 function valorDia(key,ds){
- if(key=="ativos")return atv.filter(function(a){return a.data==ds}).length;
+ if(key=="ativos")return atv.filter(function(a){return atvCriadoEm(a)==ds}).length;
  if(key=="contadores")return contadores.reduce(function(n,c){return n+(c.visitas||[{data:c.data}]).filter(function(v){return v.data==ds}).length},0);
  if(key=="clientes")return visitasClientes.reduce(function(n,c){return n+(c.visitas||[{data:c.data}]).filter(function(v){return v.data==ds}).length},0);
  var z=evo[ds]||{},manual=+(z[key]||0),impl=0,vendas=0,mig=0,upg=0;
