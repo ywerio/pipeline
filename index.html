@@ -715,7 +715,7 @@ function valorDia(key,ds){
 function indicadorPeriodoTotal(key,mode,start,end,monthly){
  var map={ativos:"ativos",contadores:"vis",clientes:"pos",importacao:"cac",vendas:"vendas"},ik=map[key];if(key=="migracao"||key=="upgrades")return null;
  if(monthly){var ano=start.getFullYear(),sum=0;for(var m=0;m<12;m++){var mes=ano+"-"+String(m+1).padStart(2,"0"),v=indicadorMes(mes,ik);if(v!==null)sum+=v;else{var lim=new Date(ano,m+1,0).getDate();for(var d=1;d<=lim;d++)sum+=valorDia(key,iso(new Date(ano,m,d)))}}return sum}
- if(mode=="week"&&start.getFullYear()==end.getFullYear()&&start.getMonth()==end.getMonth()&&Math.floor((start.getDate()-1)/7)==Math.floor((end.getDate()-1)/7)){var mm=iso(start).slice(0,7),a=ind&&ind.mes==mm?ind.ach:indHistory[mm],b=bucketIndicador(iso(start));if(a)return +a[b][ik]||0}
+ if(mode=="week"){var mm=iso(now).slice(0,7),a=ind&&ind.mes==mm?ind.ach:indHistory[mm],b=ind&&ind.mes==mm?ind.sem:bucketIndicador(iso(start));if(a)return +a[b][ik]||0}
  return null;
 }
 function setupEvo(){var now=new Date(),y=$("evoyear");y.innerHTML=Array.from({length:12},function(_,i){return now.getFullYear()-i}).map(function(v){return '<option value="'+v+'">'+v+'</option>'}).join("");y.value=now.getFullYear();$("evostart").value=iso(weekStart(now));$("evoend").value=iso(now)}
@@ -743,8 +743,8 @@ function initDb(){stat("Salvo neste aparelho · entre na conta para ativar a nuv
 window.__pipelineGetState=function(){return {data:data,meta:meta,ind:ind,indHistory:indHistory,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,comissoes:comissoes,v:7}};
 window.__pipelineApplyState=function(j){
   if(!j||!Array.isArray(j.data))throw new Error("Backup da nuvem inválido");
-  data=j.data.map(norm);meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}if(j.indHistory)indHistory=j.indHistory;if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;if(Array.isArray(j.comissoes))comissoes=j.comissoes;autoIndicadores();ensureIndMonth();
-  localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"ih",JSON.stringify(indHistory));localStorage.setItem(KEY+"e",JSON.stringify(evo));render();
+  data=j.data.map(norm);meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}indHistory=j.indHistory||{};if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;if(Array.isArray(j.comissoes))comissoes=j.comissoes;autoIndicadores();ensureIndMonth();
+  localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"ih",JSON.stringify(indHistory));localStorage.setItem(KEY+"e",JSON.stringify(evo));localStorage.setItem(KEY+"com",JSON.stringify(comissoes));render();
 };
 function build(){
   var ST={ativo:"Em negociação",ganho:"Fechado",perdido:"Perdido"},PB={alta:"Alta",media:"Média",baixa:"Baixa"};
