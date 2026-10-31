@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Pipeline V1</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">$("biRefresh").onclick=function(){renderBI()};
 </script>
 <style>
@@ -182,7 +183,7 @@ body:not(.auth-locked) #loginScreen{display:none!important}
   <div style="padding:12px 16px;border-top:1px solid var(--line);display:grid;gap:8px"><button type="button" id="firebaseLogin" class="pri" style="width:100%;display:none">Entrar e ativar sincronização</button><button type="button" id="firebaseLogout" class="sec" style="width:100%;display:none">Sair da conta</button><p id="firebaseStatus" class="sub" style="font-size:12px;margin:0">Sincronização na nuvem ainda não ativada.</p><button type="button" id="exportOpen" style="width:100%">Central de exportação</button></div>
 </aside>
 <main>
-  <div class="app-header"><button type="button" class="menu-toggle" id="menutoggle" aria-label="Abrir menu" aria-expanded="false">☰</button><div><h1>Pipeline V1</h1><p class="sub" style="margin:2px 0 0">Gestão comercial</p></div></div>
+  <div class="app-header"><button type="button" class="menu-toggle" id="menutoggle" aria-label="Abrir menu" aria-expanded="false">☰</button><div><h1>Pipeline</h1><p class="sub" style="margin:2px 0 0">Gestão comercial</p></div></div>
   <p class="sub" id="hoje"></p>
   <p class="sub" id="stat" style="margin-top:-12px"></p>
   <div class="chips" id="tabs"></div>
@@ -272,7 +273,8 @@ body:not(.auth-locked) #loginScreen{display:none!important}
 
 <dialog id="dlg8"><form onsubmit="return false"><h2 id="vctitle">Registrar visita a cliente</h2><label>Nome do cliente / estabelecimento<input id="vccliente" maxlength="100" required placeholder="Nome do cliente"></label><label>Nome do contato<input id="vcnome" maxlength="80" placeholder="Nome do responsável"></label><label>Telefone / WhatsApp<input id="vctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="vcrua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="vcbairro" maxlength="80"></label><label>Cidade<input id="vccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="vclink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="vccancel">Cancelar</button><button type="button" class="pri" id="vcsave">Salvar visita</button></div></form></dialog>
 <dialog id="dlg9"><form onsubmit="return false"><h2 id="saleTitle">Registrar venda ao cliente</h2><label>Tipo de venda<select id="saleType"><option value="migracao">Migração Desktop → Web</option><option value="upgrade">Upgrade / serviço adicional</option></select></label><label>Serviço vendido<input id="saleService" maxlength="100" required placeholder="Ex.: Migração Desktop para Web, Venda Mais, Drica IA"></label><label id="saleValueLabel">Valor pago no ato (R$)<input id="saleValue" type="number" inputmode="decimal" min="0" step="0.01" value="300" required></label><div class="g2"><label>Data da contratação<input id="saleDate" type="date" required></label><label id="salePaidWrap" hidden>Data do pagamento da 1ª mensalidade<input id="salePaid" type="date"></label></div><div class="preview" id="saleCommissionPreview">Comissão de migração: 6% do valor pago, prevista para o mês seguinte.</div><div class="fa"><button type="button" id="saleCancel">Cancelar</button><button type="button" class="pri" id="saleSave">Registrar venda</button></div></form></dialog>
-<dialog id="dlgExport"><form onsubmit="return false"><h2>Central de exportação</h2><p class="sub">Escolha o formato para exportar seus dados.</p><button type="button" class="pri" id="xl" style="width:100%">Baixar planilha Excel (BI)</button><button type="button" id="exp" style="width:100%">Exportar base completa (CSV)</button><button type="button" id="backupJson" style="width:100%">Baixar backup completo (JSON)</button><div class="fa"><button type="button" id="exportClose">Fechar</button></div></form></dialog>
+<dialog id="dlgExport"><form onsubmit="return false"><h2>Central de exportação</h2><p class="sub">Escolha o tipo de arquivo que deseja gerar.</p><button type="button" class="pri" id="pdfOpen" style="width:100%">Gerar relatório PDF do painel BI</button><button type="button" class="sec" id="xl" style="width:100%">Baixar planilha Excel (BI)</button><button type="button" id="exp" style="width:100%">Exportar base completa (CSV)</button><button type="button" id="backupJson" style="width:100%">Baixar backup completo (JSON)</button><div class="fa"><button type="button" id="exportClose">Fechar</button></div></form></dialog>
+<dialog id="dlgPdf"><form onsubmit="return false"><h2>Relatório executivo em PDF</h2><p class="sub">Escolha o período e o nível de detalhamento antes de gerar o documento.</p><label>Mês de referência<input type="month" id="pdfMonth"></label><label class="chk"><input type="radio" name="pdfMode" value="simple" checked> Relatório simplificado — visão executiva, resultados e gráficos principais.</label><label class="chk"><input type="radio" name="pdfMode" value="full"> Relatório completo — inclui evolução diária e semanal, funil, categorias de vendas, comissões e detalhamento.</label><div class="preview">O relatório usa os dados atuais do seu Pipeline. Depois de gerar, você poderá baixar o PDF ou compartilhar pelo aparelho, quando essa função estiver disponível.</div><div class="fa"><button type="button" id="pdfCancel">Voltar</button><button type="button" class="pri" id="pdfGenerate">Gerar PDF</button></div></form></dialog>
 <dialog id="dlg7"><form onsubmit="return false"><h2 id="ctitle">Novo contador</h2><label>Nome do escritório<input id="cescritorio" maxlength="100" required placeholder="Ex.: Escritório Contábil Silva"></label><label>Nome do contador<input id="cnome" maxlength="80" placeholder="Nome do contador"></label><label>Telefone / WhatsApp<input id="ctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="crua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="cbairro" maxlength="80"></label><label>Cidade<input id="ccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="clink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="ccancel">Cancelar</button><button type="button" class="pri" id="csave">Salvar contador</button></div></form></dialog>
 <script>
 var KEY="pipeline_v3",ind=null,indHistory={},atv=[],contadores=[],visitasClientes=[],evo={},comissoes=[],view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null,vendaClienteId=null;
@@ -807,6 +809,100 @@ function backupCompleto(){
     setTimeout(function(){URL.revokeObjectURL(url)},1500);stat("Backup completo gerado. Confira a pasta de downloads.");
   }catch(e){stat("Não foi possível gerar o backup completo.");}
 }
+
+function pdfDate(ds){if(!ds)return "—";var p=ds.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:ds}
+function pdfMonthName(m){var p=m.split("-");return new Date(+p[0],+p[1]-1,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}
+function pdfText(doc,txt,x,y,w,size){doc.setFontSize(size||9);var lines=doc.splitTextToSize(String(txt==null?"":txt),w);doc.text(lines,x,y);return y+lines.length*((size||9)*.48)+2}
+function pdfSection(doc,title,y){doc.setFillColor(31,78,121);doc.roundedRect(14,y-5,182,9,2,2,"F");doc.setTextColor(255,255,255);doc.setFontSize(10);doc.text(title,19,y+1);doc.setTextColor(30,40,50);return y+12}
+function pdfKpi(doc,x,y,w,label,value){doc.setDrawColor(218,225,232);doc.setFillColor(247,249,251);doc.roundedRect(x,y,w,20,2,2,"FD");doc.setTextColor(90,105,120);doc.setFontSize(7);doc.text(label,x+3,y+6);doc.setTextColor(31,78,121);doc.setFont("helvetica","bold");doc.setFontSize(11);doc.text(String(value),x+3,y+14);doc.setFont("helvetica","normal")}
+function pdfBars(doc,labels,values,x,y,w,h,fmt){var max=Math.max(1,...values);var gap=4,bw=(w-gap*(values.length-1))/values.length;values.forEach(function(v,i){var bh=Math.max(1,(v/max)*(h-13)),bx=x+i*(bw+gap);doc.setFillColor(31,78,121);doc.roundedRect(bx,y+h-11-bh,bw,bh,1,1,"F");doc.setTextColor(65,75,85);doc.setFontSize(7);doc.text(labels[i],bx+bw/2,y+h,{align:"center"});doc.setFontSize(6);doc.text(fmt?fmt(v):String(v),bx+bw/2,y+h-14-bh,{align:"center"})})}
+function gerarRelatorioPDF(){
+ var lib=window.jspdf&&window.jspdf.jsPDF;if(!lib){alert("O gerador de PDF ainda não carregou. Verifique sua conexão e tente novamente.");return}
+ var mes=$("pdfMonth").value||iso(new Date()).slice(0,7),modo=document.querySelector('input[name="pdfMode"]:checked')?.value||"simple";
+ var doc=new lib({orientation:"portrait",unit:"mm",format:"a4"}),W=182,mesTxt=pdfMonthName(mes),hoje=iso(new Date());
+ var indV=indicadorMes(mes,"vendas"),indI=indicadorMes(mes,"importacao");
+ if(indV==null)indV=0;if(indI==null)indI=0;
+ var semanas=ind&&ind.mes===mes?ind.ach:(indHistory[mes]||[0,1,2,3].map(function(){return {vendas:0,cac:0,vis:0,ativos:0,pos:0,clientes:0}}));
+ var sumKey=function(k){return semanas.reduce(function(a,b){return a+(+b[k]||0)},0)};
+ var vendas=sumKey("vendas"),implant=sumKey("cac");
+ if(vendas||implant){indV=vendas;indI=implant}
+ var ativos=atv.filter(function(a){return atvCriadoEm(a)&&atvCriadoEm(a).slice(0,7)==mes});
+ var visitasC=contadores.reduce(function(n,c){return n+(c.visitas||[{data:c.data}]).filter(function(v){return v.data&&v.data.slice(0,7)==mes}).length},0);
+ var visitasCli=visitasClientes.reduce(function(n,c){return n+(c.visitas||[{data:c.data}]).filter(function(v){return v.data&&v.data.slice(0,7)==mes}).length},0);
+ var fechados=data.filter(function(c){return c.st=="ganho"&&(c.fechadoEm||"").slice(0,7)==mes});
+ var emAberto=data.filter(function(c){return c.st=="ativo"}),perdidos=data.filter(function(c){return c.st=="perdido"&&(c.fechadoEm||c.ult||"").slice(0,7)==mes});
+ var vendasCliente=visitasClientes.flatMap(function(c){return (c.vendas||[]).filter(function(v){return (v.data||"").slice(0,7)==mes}).map(function(v){return Object.assign({cliente:c.cliente},v)})});
+ var migracoes=vendasCliente.filter(function(v){return v.tipo=="migracao"}),upgrades=vendasCliente.filter(function(v){return v.tipo=="upgrade"});
+ var sumSales=migracoes.reduce(function(a,v){return a+(+v.valor||0)},0)+upgrades.reduce(function(a,v){return a+(+v.mensal||0)*12},0);
+ var comMig=migracoes.reduce(function(a,v){return a+(+v.comissao||0)},0),comUp=upgrades.reduce(function(a,v){return a+(+v.comissao||0)},0);
+ var fmt= function(v){return brl.format(+v||0)};
+ var bucketLabels=["Dias 1–7","Dias 8–14","Dias 15–21","Dias 22–fim"],weekV=semanas.map(function(x){return +x.vendas||0}),weekI=semanas.map(function(x){return +x.cac||0});
+ var d0=parse(mes+"-01"),days=new Date(d0.getFullYear(),d0.getMonth()+1,0).getDate(),dailyA=[],dailyC=[],dailyCli=[];
+ for(var day=1;day<=days;day++){var ds=mes+"-"+String(day).padStart(2,"0");dailyA.push(ativos.filter(function(a){return atvCriadoEm(a)==ds}).length);dailyC.push(contadores.reduce(function(n,c){return n+(c.visitas||[{data:c.data}]).filter(function(v){return v.data==ds}).length},0));dailyCli.push(visitasClientes.reduce(function(n,c){return n+(c.visitas||[{data:c.data}]).filter(function(v){return v.data==ds}).length},0))}
+ var totalAtivos=ativos.length,totalVisC=visitasC,totalVisCli=visitasCli,totalDeals=fechados.length;
+ function header(sub){doc.setFillColor(20,45,70);doc.rect(0,0,210,34,"F");doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(21);doc.text("PIPELINE",14,15);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.text("RELATORIO EXECUTIVO DE DESEMPENHO COMERCIAL",14,22);doc.setFontSize(8);doc.text(sub+"  |  "+mesTxt,14,28);doc.setTextColor(35,45,55);doc.setFontSize(8);doc.text("Gerado em "+pdfDate(hoje),196,39,{align:"right"})}
+ function footer(n){doc.setFontSize(7);doc.setTextColor(120,130,140);doc.text("Pipeline  |  Relatorio gerado com os dados registrados no aplicativo",14,287);doc.text(String(n),196,287,{align:"right"})}
+ header(modo=="simple"?"RESUMO EXECUTIVO":"RELATORIO COMPLETO");
+ var y=47;doc.setFont("helvetica","bold");doc.setFontSize(14);doc.text("Visao geral do periodo",14,y);y+=8;
+ pdfKpi(doc,14,y,43,"VENDAS REGISTRADAS",fmt(indV));pdfKpi(doc,60,y,43,"IMPLANTACAO",fmt(indI));pdfKpi(doc,106,y,43,"ATIVOS CADASTRADOS",String(totalAtivos));pdfKpi(doc,152,y,44,"CLIENTES GANHOS",String(totalDeals));y+=26;
+ pdfKpi(doc,14,y,43,"VISITAS CONTADORES",String(totalVisC));pdfKpi(doc,60,y,43,"VISITAS CLIENTES",String(totalVisCli));pdfKpi(doc,106,y,43,"NEGOCIACOES ABERTAS",String(emAberto.length));pdfKpi(doc,152,y,44,"VENDAS ADICIONAIS",String(vendasCliente.length));y+=27;
+ y=pdfSection(doc,"RESULTADOS E EVOLUCAO SEMANAL",y);
+ doc.setFontSize(8);doc.text("Vendas e implantacao por semana (valores oficiais dos indicadores)",14,y);y+=5;
+ pdfBars(doc,bucketLabels,weekV,17,y,82,39,fmt);pdfBars(doc,bucketLabels,weekI,111,y,82,39,fmt);y+=48;
+ doc.setFontSize(7);doc.setTextColor(90,100,110);doc.text("VENDAS",17,y);doc.text("IMPLANTACAO",111,y);doc.setTextColor(35,45,55);y+=8;
+ y=pdfSection(doc,"RESUMO EXECUTIVO",y);
+ var taxa=totalDeals+perdidos.length?Math.round(totalDeals/(totalDeals+perdidos.length)*100):0;
+ y=pdfText(doc,"No periodo de "+mesTxt+", foram registrados "+totalAtivos+" novos ativos, "+totalVisC+" visitas a contadores e "+totalVisCli+" visitas a clientes. O resultado oficial foi de "+fmt(indV)+" em vendas e "+fmt(indI)+" em implantacao. Foram concluidas "+totalDeals+" negociacoes como ganho.",14,y,W,9);
+ y=pdfText(doc,"Conversao das negociacoes encerradas: "+taxa+"% ("+totalDeals+" ganhos de "+(totalDeals+perdidos.length)+" encerradas).",14,y,W,9);
+ if(modo=="simple"){
+   y=pdfSection(doc,"DESTAQUES DO PERIODO",y+2);
+   var highlights=["Vendas: "+fmt(indV),"Implantacao: "+fmt(indI),"Migracoes: "+migracoes.length+" ("+fmt(migracoes.reduce(function(a,v){return a+(+v.valor||0)},0))+")","Upgrades: "+upgrades.length+" ("+fmt(upgrades.reduce(function(a,v){return a+(+v.mensal||0)*12},0))+" anualizados)","Comissao identificada nas vendas adicionais: "+fmt(comMig+comUp)];
+   highlights.forEach(function(t){y=pdfText(doc,"• "+t,17,y,W-6,8)});
+   y=pdfText(doc,"Observacao: os totais de vendas e implantacao reproduzem os indicadores oficiais do mes. Os detalhamentos de vendas adicionais dependem dos registros individuais cadastrados.",14,Math.min(265,y+3),W,7);
+   footer(1);
+ }else{
+   footer(1);
+   doc.addPage();header("EVOLUCAO OPERACIONAL");
+   y=48;y=pdfSection(doc,"ATIVIDADE DIARIA",y);
+   doc.setFontSize(8);doc.text("Ativos cadastrados por dia",14,y);y+=4;
+   var step=Math.max(1,Math.ceil(days/15)),labs=[],vals=[];for(var z=0;z<days;z+=step){labs.push(String(z+1));vals.push(dailyA.slice(z,z+step).reduce(function(a,b){return a+b},0))}
+   pdfBars(doc,labs,vals,16,y,178,32,String);y+=41;
+   doc.text("Visitas a contadores e clientes por semana",14,y);y+=5;
+   var wkC=[0,0,0,0],wkCli=[0,0,0,0];for(var z=0;z<days;z++){var bi=Math.min(3,Math.floor(z/7));wkC[bi]+=dailyC[z];wkCli[bi]+=dailyCli[z]}
+   pdfBars(doc,["Sem 1","Sem 2","Sem 3","Sem 4"],wkC,17,y,82,35,String);pdfBars(doc,["Sem 1","Sem 2","Sem 3","Sem 4"],wkCli,111,y,82,35,String);y+=44;
+   y=pdfSection(doc,"FUNIL COMERCIAL",y);
+   pdfKpi(doc,14,y,43,"EM NEGOCIACAO",String(emAberto.length));pdfKpi(doc,60,y,43,"FECHADOS GANHOS",String(totalDeals));pdfKpi(doc,106,y,43,"FECHADOS PERDIDOS",String(perdidos.length));pdfKpi(doc,152,y,44,"CONVERSAO",taxa+"%");y+=27;
+   y=pdfText(doc,"Valor potencial em negociacao: "+fmt(emAberto.reduce(function(a,c){return a+total(c)},0))+". Valor total dos contratos ganhos no periodo: "+fmt(fechados.reduce(function(a,c){return a+total(c)},0))+".",14,y,W,8);
+   y=pdfSection(doc,"VENDAS POR CATEGORIA",y+3);
+   y=pdfText(doc,"Implantacao de aquisicao: "+fmt(fechados.reduce(function(a,c){return a+(+c.impl||0)},0)),14,y,W,8);
+   y=pdfText(doc,"Migracoes Desktop para Web: "+fmt(migracoes.reduce(function(a,v){return a+(+v.valor||0)},0))+" ("+migracoes.length+" venda(s)).",14,y,W,8);
+   y=pdfText(doc,"Upgrades e servicos adicionais: "+fmt(upgrades.reduce(function(a,v){return a+(+v.mensal||0)*12},0))+" em 12 mensalidades ("+upgrades.length+" venda(s)).",14,y,W,8);
+   y=pdfText(doc,"Vendas adicionais anualizadas no detalhamento: "+fmt(sumSales)+".",14,y,W,8);
+   footer(2);
+   doc.addPage();header("COMISSOES E DETALHAMENTO");
+   y=48;y=pdfSection(doc,"COMISSOES IDENTIFICADAS",y);
+   y=pdfText(doc,"Comissao de migracoes (6%): "+fmt(comMig)+".",14,y,W,9);
+   y=pdfText(doc,"Comissao de upgrades (5% sobre 12 mensalidades): "+fmt(comUp)+".",14,y,W,9);
+   y=pdfText(doc,"Total de comissoes calculadas nos registros individuais de vendas adicionais: "+fmt(comMig+comUp)+".",14,y,W,9);
+   y=pdfText(doc,"As comissoes de aquisicao, mensalidades e demais previsoes podem depender de datas de pagamento e dos registros de comissao. Consulte a aba Comissoes no aplicativo para a posicao completa.",14,y,W,8);
+   y=pdfSection(doc,"ULTIMAS VENDAS ADICIONAIS",y+5);
+   if(!vendasCliente.length)y=pdfText(doc,"Nenhuma venda adicional individual registrada neste mes.",14,y,W,8);
+   vendasCliente.slice().sort(function(a,b){return (b.data||"").localeCompare(a.data||"")}).slice(0,18).forEach(function(v){var tipo=v.tipo=="migracao"?"Migracao Desktop para Web":"Upgrade / servico adicional";y=pdfText(doc,pdfDate(v.data)+"  |  "+(v.cliente||"Cliente")+"  |  "+tipo+"  |  "+(v.servico||"Servico")+"  |  "+fmt(v.tipo=="migracao"?v.valor:(+v.mensal||0)*12),14,y,W,7)});
+   y=pdfSection(doc,"CRITERIOS E OBSERVACOES",Math.min(258,y+5));
+   y=pdfText(doc,"Os indicadores oficiais de vendas e implantacao sao apresentados conforme os lancamentos consolidados na aba Indicadores. A evolucao diaria e semanal de atividades utiliza as datas registradas em ativos, visitas e vendas individuais. Quando nao existe detalhamento diario de um valor consolidado, ele permanece representado no total oficial e na distribuicao semanal cadastrada.",14,y,W,7);
+   footer(3);
+ }
+ var filename="pipeline-relatorio-"+mes+"-"+(modo=="simple"?"resumido":"completo")+".pdf";
+ var blob=doc.output("blob"),file=new File([blob],filename,{type:"application/pdf"});
+ if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+  navigator.share({files:[file],title:"Relatorio Pipeline",text:"Relatorio comercial "+mesTxt}).catch(function(e){if(e&&e.name!="AbortError")doc.save(filename)});
+ }else{doc.save(filename);stat("PDF gerado. Abra os downloads para compartilhar o relatorio.")}
+ $("dlgPdf").close();$("dlgExport").close();
+}
+$("pdfOpen").onclick=function(){$("dlgExport").close();$("pdfMonth").value=iso(new Date()).slice(0,7);$("dlgPdf").showModal()};
+$("pdfCancel").onclick=function(){$("dlgPdf").close();$("dlgExport").showModal()};
+$("pdfGenerate").onclick=gerarRelatorioPDF;
+
 $("backupJson").onclick=function(){$("dlgExport").close();backupCompleto()};$("exportOpen").onclick=function(){$("dlgExport").showModal()};$("exportClose").onclick=function(){$("dlgExport").close()};
 function openMenu(){$("menudrawer").classList.add("open");$("menudrawer").setAttribute("aria-hidden","false");$("menushade").hidden=false;$("menutoggle").setAttribute("aria-expanded","true")}
 function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").setAttribute("aria-hidden","true");$("menushade").hidden=true;$("menutoggle").setAttribute("aria-expanded","false")}
