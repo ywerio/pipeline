@@ -277,7 +277,7 @@ body:not(.auth-locked) #loginScreen{display:none!important}
 <dialog id="dlgPdf"><form onsubmit="return false"><h2>Relatório executivo em PDF</h2><p class="sub">Escolha o período e o nível de detalhamento antes de gerar o documento.</p><label>Mês de referência<input type="month" id="pdfMonth"></label><label class="chk"><input type="radio" name="pdfMode" value="simple" checked> Relatório simplificado — visão executiva, resultados e gráficos principais.</label><label class="chk"><input type="radio" name="pdfMode" value="full"> Relatório completo — inclui evolução diária e semanal, funil, categorias de vendas, comissões e detalhamento.</label><div class="preview">O relatório usa os dados atuais do seu Pipeline. Depois de gerar, você poderá baixar o PDF ou compartilhar pelo aparelho, quando essa função estiver disponível.</div><div class="fa"><button type="button" id="pdfCancel">Voltar</button><button type="button" class="pri" id="pdfGenerate">Gerar PDF</button></div></form></dialog>
 <dialog id="dlg7"><form onsubmit="return false"><h2 id="ctitle">Novo contador</h2><label>Nome do escritório<input id="cescritorio" maxlength="100" required placeholder="Ex.: Escritório Contábil Silva"></label><label>Nome do contador<input id="cnome" maxlength="80" placeholder="Nome do contador"></label><label>Telefone / WhatsApp<input id="ctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="crua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="cbairro" maxlength="80"></label><label>Cidade<input id="ccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="clink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="ccancel">Cancelar</button><button type="button" class="pri" id="csave">Salvar contador</button></div></form></dialog>
 <script>
-var KEY="pipeline_v3",ind=null,indHistory={},atv=[],contadores=[],visitasClientes=[],evo={},comissoes=[],view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null,vendaClienteId=null;
+var KEY="pipeline_v3",ind=null,indHistory={},indConfigHistory={},atv=[],contadores=[],visitasClientes=[],evo={},comissoes=[],view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null,vendaClienteId=null;
 var NIV={alta:"Alta probabilidade",media:"Média probabilidade",baixa:"Baixa probabilidade"};
 var WA_MENSAGEM="Olá, tudo bem? 😊\n\nSou Vargas, consultor comercial da Softcom Tecnologia.\n\nTrabalho com uma solução de gestão moderna, com banco de dados em nuvem e garantia de um sistema sempre atualizado e preparado para acompanhar as mudanças e exigências das regras fiscais.\n\nGostaria de saber se podemos agendar uma breve demonstração para você conhecer a solução e ver como ela pode ajudar no dia a dia da sua empresa.\n\nO que acha? 🤝";
 var W={alta:.8,media:.4,baixa:.1};
@@ -297,7 +297,7 @@ function fd(d){return d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit
 function esc(s){var e=document.createElement("div");e.textContent=s;return e.innerHTML}
 function norm(c){return Object.assign({end:"",link:"",resp:"",vt:0,mensal:0,upg:0,impl:0,instalacao:"",primeiroPgPago:"",tel:"",st:"ativo",prevf:"",motivo:"",fechadoEm:"",hist:[],obs:""},c)}
 function load(){
-  try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0);var cv0=localStorage.getItem(KEY+"c");if(cv0)contadores=JSON.parse(cv0);var vc0=localStorage.getItem(KEY+"vc");if(vc0)visitasClientes=JSON.parse(vc0);var ih0=localStorage.getItem(KEY+"ih");if(ih0)indHistory=JSON.parse(ih0);var ev0=localStorage.getItem(KEY+"e");if(ev0)evo=JSON.parse(ev0);var cm0=localStorage.getItem(KEY+"com");if(cm0)comissoes=JSON.parse(cm0)}catch(e){}
+  try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0);var cv0=localStorage.getItem(KEY+"c");if(cv0)contadores=JSON.parse(cv0);var vc0=localStorage.getItem(KEY+"vc");if(vc0)visitasClientes=JSON.parse(vc0);var ih0=localStorage.getItem(KEY+"ih");if(ih0)indHistory=JSON.parse(ih0);var ic0=localStorage.getItem(KEY+"ic");if(ic0)indConfigHistory=JSON.parse(ic0);var ev0=localStorage.getItem(KEY+"e");if(ev0)evo=JSON.parse(ev0);var cm0=localStorage.getItem(KEY+"com");if(cm0)comissoes=JSON.parse(cm0)}catch(e){}
   if(!ind)ind=IND0();fixInd();autoIndicadores();ensureIndMonth();
 }
 function autoIndicadores(){
@@ -314,7 +314,7 @@ function autoIndicadores(){
  ind.ach.forEach(function(w,i){["clientes","vis","ativos","pos"].forEach(function(k){w[k]=(+w[k]||0)+auto[i][k]})});
  ind.autoSnapshot={mes:mes,ach:auto};
 }
-function save(){try{autoIndicadores();localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"ih",JSON.stringify(indHistory));localStorage.setItem(KEY+"e",JSON.stringify(evo));localStorage.setItem(KEY+"com",JSON.stringify(comissoes))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
+function save(){try{autoIndicadores();localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"ih",JSON.stringify(indHistory));localStorage.setItem(KEY+"ic",JSON.stringify(indConfigHistory));localStorage.setItem(KEY+"e",JSON.stringify(evo));localStorage.setItem(KEY+"com",JSON.stringify(comissoes))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
 function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
 function render(){
   ensureIndMonth();var P=view=="pipe",A=view=="atv"||view=="atvprev";
@@ -358,6 +358,16 @@ function addUteis(ds,n){var d=parse(ds),i=0;while(i<n){d=addDays(d,1);if(d.getDa
 function addDias(ds,n){return iso(addDays(parse(ds),n))}
 function mesSeguinte(ds){var d=parse(ds+"-01");d.setMonth(d.getMonth()+1);return iso(d).slice(0,7)}
 function resumoIndicadorComissao(mes,tipo){var v=indicadorMes(mes,tipo);if(v!==null)return v;var soma=0,d=new Date(+mes.slice(0,4),+mes.slice(5,7)-1,1),fim=new Date(d.getFullYear(),d.getMonth()+1,0);for(var i=1;i<=fim.getDate();i++)soma+=valorDia(tipo,iso(new Date(d.getFullYear(),d.getMonth(),i)));return soma}
+function bonusMetasMes(mes){
+ var ach=ind&&ind.mes===mes?ind.ach:indHistory[mes];
+ if(!ach)return {hit:0,ind:0,plus:0};
+ var cfg=indConfigHistory[mes]||{obj:ind.obj||{},peso:ind.peso||{},plus:ind.plus||[],min:ind.min||4};
+ var hit=0,valorInd=0,valorPlus=0,vendas=ach.reduce(function(n,w){return n+(+w.vendas||0)},0);
+ IK.forEach(function(k){var realizado=ach.reduce(function(n,w){return n+(+w[k]||0)},0),meta=+(cfg.obj&&cfg.obj[k])||0;if(meta>0&&realizado>=meta){hit++;valorInd+=+(cfg.peso&&cfg.peso[k])||0}});
+ if(hit>=(+cfg.min||4))(cfg.plus||[]).forEach(function(p){if((+p.meta||0)>0&&vendas>=+p.meta)valorPlus+=+p.valor||0});
+ if(hit<(+cfg.min||4))valorInd=0;
+ return {hit:hit,ind:valorInd,plus:valorPlus};
+}
 function previsaoComissoes(){var out=[],meses={};
 data.filter(function(c){return c.st=="ganho"}).forEach(function(c){var fechado=c.fechadoEm||c.data||iso(new Date()),inst=c.instalacao||addUteis(fechado,5),pago=c.primeiroPgPago||"",venc=addDias(inst,30),base="cli-"+c.id,mesOrigem=fechado.slice(0,7);meses[mesOrigem]=meses[mesOrigem]||{impl:0,mensal:0};meses[mesOrigem].impl+=(+c.impl||0);meses[mesOrigem].mensal+=((+c.mensal||0)+(+c.upg||0))*12;
 if(+c.impl>0)out.push({id:base+"-lic",origem:"auto",cliente:c.nome,tipo:"Implantação · 6%",valor:+c.impl*.06,competencia:mesSeguinte(mesOrigem),evento:inst,eventoLabel:c.instalacao?"Instalação realizada":"Instalação prevista",confirmado:!!c.instalacao});
@@ -368,6 +378,7 @@ Object.keys(indHistory).forEach(function(mes){meses[mes]=meses[mes]||{impl:0,men
 Object.keys(meses).forEach(function(mes){var baseImpl=resumoIndicadorComissao(mes,"importacao"),baseVendas=resumoIndicadorComissao(mes,"vendas"),baseMensal=Math.max(0,baseVendas-baseImpl),registrado=meses[mes]||{impl:0,mensal:0},resImpl=Math.max(0,baseImpl-registrado.impl),resMensal=Math.max(0,baseMensal-registrado.mensal);
 if(resImpl>.009)out.push({id:"ind-"+mes+"-lic",origem:"indicador",cliente:"Resultado dos indicadores · "+mes,tipo:"Implantação e migração não discriminadas · 6%",valor:resImpl*.06,competencia:mesSeguinte(mes),evento:mes+"-28",eventoLabel:"Indicador de implantação; previsão a confirmar",confirmado:false});
 if(resMensal>.009)out.push({id:"ind-"+mes+"-men",origem:"indicador",cliente:"Resultado dos indicadores · "+mes,tipo:"Vendas menos implantação · 5% de 12 meses",valor:resMensal*.05,competencia:mesSeguinte(mesSeguinte(mes)),evento:mes+"-28",eventoLabel:"Saldo do indicador de vendas; previsão após a primeira mensalidade",confirmado:false});
+var bonus=bonusMetasMes(mes);if(bonus.ind>0)out.push({id:"metas-"+mes,origem:"indicador",cliente:"Metas atingidas · "+mes,tipo:"Remuneração por "+bonus.hit+" indicadores atingidos (mínimo "+(indConfigHistory[mes]&&indConfigHistory[mes].min||ind.min||4)+")",valor:bonus.ind,competencia:mesSeguinte(mes),evento:mes+"-28",eventoLabel:"Metas atingidas no mês; pagamento no mês seguinte",confirmado:true});if(bonus.plus>0)out.push({id:"plus-"+mes,origem:"indicador",cliente:"Metas Plus · "+mes,tipo:"Adicional por faixa de vendas atingida",valor:bonus.plus,competencia:mesSeguinte(mes),evento:mes+"-28",eventoLabel:"Meta Plus atingida no mês; pagamento no mês seguinte",confirmado:true});
 });return out}
 function renderComissoes(){var mes=$("comMes").value||iso(new Date()).slice(0,7),filtro=$("comFiltro").value,autos=previsaoComissoes(),todos=autos.concat(comissoes.filter(function(x){return x.origem=="manual"})).map(function(x){var saved=comissoes.filter(function(s){return s.id==x.id})[0];return Object.assign({},x,saved||{})}),doMes=todos.filter(function(x){return x.competencia==mes}),gerado=doMes.filter(function(x){return x.confirmado}).reduce(function(n,x){return n+(+x.valor||0)},0),recebido=doMes.filter(function(x){return x.recebido}).reduce(function(n,x){return n+(+x.valor||0)},0),pendente=doMes.filter(function(x){return x.confirmado&&!x.recebido}).reduce(function(n,x){return n+(+x.valor||0)},0),previsto=doMes.filter(function(x){return !x.confirmado&&!x.recebido}).reduce(function(n,x){return n+(+x.valor||0)},0);
 $("comKpis").innerHTML='<div class="bi-kpi"><small>Comissão gerada</small><b>'+brl.format(gerado)+'</b></div><div class="bi-kpi"><small>A receber</small><b>'+brl.format(pendente)+'</b></div><div class="bi-kpi"><small>Já recebido</small><b>'+brl.format(recebido)+'</b></div><div class="bi-kpi"><small>Previsão (a confirmar)</small><b>'+brl.format(previsto)+'</b></div>';
@@ -514,7 +525,8 @@ document.addEventListener("click",function(e){
 var IK=["vendas","clientes","cac","vis","ativos","pos"],IN={vendas:"Valor de vendas",clientes:"Qnt. clientes",cac:"Valor de implantação",vis:"Vis. contadores",ativos:"Ativos",pos:"Visitas a clientes / pós-venda"},IM={vendas:1,cac:1};
 function fixInd(){if(ind&&!ind.v){ind.v=2;if(ind.plus&&ind.plus[0]&&ind.plus[1]&&!ind.plus[0].valor&&!ind.plus[1].valor){ind.plus[0].valor=200;ind.plus[1].valor=300}}}
 function IND0(){var mes=iso(new Date()).slice(0,7);return {v:2,mes:mes,sem:Math.min(3,Math.floor((new Date().getDate()-1)/7)),min:4,obj:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},peso:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},ach:[{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}],plus:[]}}
-function ensureIndMonth(){var mes=iso(new Date()).slice(0,7);if(!ind||!ind.ach)return;if(ind.mes!==mes){if(ind.mes)indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});ind.mes=mes;ind.sem=Math.min(3,Math.floor((new Date().getDate()-1)/7));ind.ach=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});delete ind.autoSnapshot;save();}}
+function snapshotIndConfig(mes){if(!mes||!ind)return;if(!indConfigHistory[mes])indConfigHistory[mes]={obj:Object.assign({},ind.obj),peso:Object.assign({},ind.peso),plus:(ind.plus||[]).map(function(p){return {meta:+p.meta||0,valor:+p.valor||0}}),min:+ind.min||4}}
+function ensureIndMonth(){var mes=iso(new Date()).slice(0,7);if(!ind||!ind.ach)return;if(ind.mes!==mes){if(ind.mes){indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});snapshotIndConfig(ind.mes)}ind.mes=mes;ind.sem=Math.min(3,Math.floor((new Date().getDate()-1)/7));ind.ach=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});delete ind.autoSnapshot;save();}}
 function iv(k){return ind.ach.reduce(function(a,w){return a+(+w[k]||0)},0)}
 function wobj(k,w){var d=0;for(var i=0;i<w;i++)d+=+ind.ach[i][k]||0;return Math.max(0,ind.obj[k]-d)/(4-w)}
 function fmI(k,v){return IM[k]?brl.format(v):(Math.round(v*10)/10).toLocaleString("pt-BR")}
@@ -547,7 +559,7 @@ $("s5").onclick=function(){
   ind.sem=+$("isem").value;ind.min=+$("imin").value||4;save();$("dlg5").close();render()};
 $("nm").onclick=function(){
   if($("nm").textContent=="Iniciar novo mês"){$("nm").textContent="Toque de novo para zerar as 4 semanas";return}
-  var d=parse(ind.mes+"-01");d.setMonth(d.getMonth()+1);ind.mes=iso(d).slice(0,7);ind.sem=0;
+  snapshotIndConfig(ind.mes);indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});var d=parse(ind.mes+"-01");d.setMonth(d.getMonth()+1);ind.mes=iso(d).slice(0,7);ind.sem=0;
   ind.ach=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});
   save();render();openInd()};
 var selA={},qa="",ordI={alta:0,media:1,baixa:2},gps={lat:null,lng:null,acc:null},edA=null,convQ=[],convFrom=null,convOk=false;
@@ -802,7 +814,7 @@ $("xl").onclick=async function(){
 };
 function backupCompleto(){
   try{
-    var pacote={app:"Pipeline V1",formato:"pipeline-backup",versao:1,exportadoEm:new Date().toISOString(),dados:{data:data,meta:meta,ind:ind,indHistory:indHistory,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,comissoes:comissoes}};
+    var pacote={app:"Pipeline V1",formato:"pipeline-backup",versao:1,exportadoEm:new Date().toISOString(),dados:{data:data,meta:meta,ind:ind,indHistory:indHistory,indConfigHistory:indConfigHistory,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,comissoes:comissoes}};
     var blob=new Blob([JSON.stringify(pacote,null,2)],{type:"application/json"});
     var url=URL.createObjectURL(blob),a=document.createElement("a");
     a.href=url;a.download="pipeline-backup-"+iso(new Date())+".json";document.body.appendChild(a);a.click();a.remove();
