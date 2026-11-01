@@ -277,7 +277,7 @@ body:not(.auth-locked) #loginScreen{display:none!important}
 <dialog id="dlgPdf"><form onsubmit="return false"><h2>Relatório executivo em PDF</h2><p class="sub">Escolha o período e o nível de detalhamento antes de gerar o documento.</p><label>Mês de referência<input type="month" id="pdfMonth"></label><label class="chk"><input type="radio" name="pdfMode" value="simple" checked> Relatório simplificado — visão executiva, resultados e gráficos principais.</label><label class="chk"><input type="radio" name="pdfMode" value="full"> Relatório completo — inclui evolução diária e semanal, funil, categorias de vendas, comissões e detalhamento.</label><div class="preview">O relatório usa os dados atuais do seu Pipeline. Depois de gerar, você poderá baixar o PDF ou compartilhar pelo aparelho, quando essa função estiver disponível.</div><div class="fa"><button type="button" id="pdfCancel">Voltar</button><button type="button" class="pri" id="pdfGenerate">Gerar PDF</button></div></form></dialog>
 <dialog id="dlg7"><form onsubmit="return false"><h2 id="ctitle">Novo contador</h2><label>Nome do escritório<input id="cescritorio" maxlength="100" required placeholder="Ex.: Escritório Contábil Silva"></label><label>Nome do contador<input id="cnome" maxlength="80" placeholder="Nome do contador"></label><label>Telefone / WhatsApp<input id="ctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="crua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="cbairro" maxlength="80"></label><label>Cidade<input id="ccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="clink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="ccancel">Cancelar</button><button type="button" class="pri" id="csave">Salvar contador</button></div></form></dialog>
 <script>
-var KEY="pipeline_v3",ind=null,indHistory={},indConfigHistory={},atv=[],contadores=[],visitasClientes=[],evo={},comissoes=[],view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null,vendaClienteId=null;
+var KEY="pipeline_v3",companyDataRevision="",ind=null,indHistory={},indConfigHistory={},atv=[],contadores=[],visitasClientes=[],evo={},comissoes=[],view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null,vendaClienteId=null;
 var NIV={alta:"Alta probabilidade",media:"Média probabilidade",baixa:"Baixa probabilidade"};
 var WA_MENSAGEM="Olá, tudo bem? 😊\n\nSou Vargas, consultor comercial da Softcom Tecnologia.\n\nTrabalho com uma solução de gestão moderna, com banco de dados em nuvem e garantia de um sistema sempre atualizado e preparado para acompanhar as mudanças e exigências das regras fiscais.\n\nGostaria de saber se podemos agendar uma breve demonstração para você conhecer a solução e ver como ela pode ajudar no dia a dia da sua empresa.\n\nO que acha? 🤝";
 var W={alta:.8,media:.4,baixa:.1};
@@ -756,10 +756,20 @@ function salvarVendaCliente(){var c=visitasClientes.filter(function(x){return x.
 $("saleSave").onclick=salvarVendaCliente;
 function pushDb(){if(window.__pipelineCloudSave)window.__pipelineCloudSave().catch(function(){stat("Falha na nuvem; seus dados continuam salvos neste aparelho")})}
 function initDb(){stat("Salvo neste aparelho · entre na conta para ativar a nuvem")}
-window.__pipelineGetState=function(){return {data:data,meta:meta,ind:ind,indHistory:indHistory,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,comissoes:comissoes,v:7}};
+window.__pipelineGetState=function(){return {data:data,meta:meta,ind:ind,indHistory:indHistory,atv:atv,contadores:contadores,visitasClientes:visitasClientes,evo:evo,comissoes:comissoes,companyDataRevision:companyDataRevision,v:7}};
+window.__pipelineMergeCompanies=function(rows,revision){
+  if(!Array.isArray(rows))throw new Error("Arquivo de atualização inválido");
+  var byId={};data.forEach(function(c){byId[String(c.id)]=c;});
+  rows.forEach(function(src){if(!src||src.id==null)return;var old=byId[String(src.id)];
+    if(old){var hist=(old.hist||[]).concat(src.hist||[]),seen={};hist=hist.filter(function(h){var k=String(h.d||"")+"|"+String(h.t||"")+"|"+String(h.k||"");if(seen[k])return false;seen[k]=true;return true;});
+      Object.keys(src).forEach(function(k){if(k!=="hist")old[k]=src[k];});old.hist=hist;
+    }else{var fresh=norm(src);data.push(fresh);byId[String(fresh.id)]=fresh;}
+  });
+  companyDataRevision=revision||"";save();render();
+};
 window.__pipelineApplyState=function(j){
   if(!j||!Array.isArray(j.data))throw new Error("Backup da nuvem inválido");
-  data=j.data.map(norm);meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}indHistory=j.indHistory||{};if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;if(Array.isArray(j.comissoes))comissoes=j.comissoes;autoIndicadores();ensureIndMonth();
+  data=j.data.map(norm);companyDataRevision=j.companyDataRevision||"";meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}indHistory=j.indHistory||{};if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;if(Array.isArray(j.comissoes))comissoes=j.comissoes;autoIndicadores();ensureIndMonth();
   localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"ih",JSON.stringify(indHistory));localStorage.setItem(KEY+"e",JSON.stringify(evo));localStorage.setItem(KEY+"com",JSON.stringify(comissoes));render();
 };
 function build(){
@@ -923,7 +933,7 @@ function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").se
 $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade").onclick=closeMenu;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
 var pipelineStarted=false;
 window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
-window.__pipelineResetState=function(){data=[];meta={meta:0};ind=IND0();indHistory={};atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
+window.__pipelineResetState=function(){data=[];companyDataRevision="";meta={meta:0};ind=IND0();indHistory={};atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 
@@ -967,6 +977,16 @@ async function activate(user){
   localStorage.setItem("pipeline_owner_uid",user.uid);
   cloudReady=true;
   window.__pipelineCloudSave=async function(){if(!cloudReady||!cloudRef||saving)return;saving=true;try{await setDoc(cloudRef,{json:JSON.stringify(window.__pipelineGetState()),updatedAt:new Date().toISOString()});show("Sincronizado na nuvem.")}finally{saving=false}};
+  const companyRevision="2026-10-31-oficial-v1";
+  if(window.__pipelineGetState().companyDataRevision!==companyRevision){
+   try{
+    const response=await fetch("./dados-empresas-v1.json",{cache:"no-store"});
+    if(!response.ok)throw new Error("HTTP "+response.status);
+    const update=await response.json();
+    window.__pipelineMergeCompanies(update.empresas,companyRevision);
+    show("Registros das empresas atualizados; os demais cadastros e históricos foram preservados.");
+   }catch(e){show("Dados carregados; atualização das empresas pendente: "+(e.message||e));}
+  }
   revealApp();
  }catch(e){cloudReady=false;cloudRef=null;show("Não foi possível carregar seus dados: "+(e.code||e.message));lockApp()}
  finally{activating=false}
