@@ -1,0 +1,362 @@
+{
+  "revision": "2026-10-31-oficial-v1",
+  "sourceBackup": "pipeline-backup-2026-10-31-atualizado(1).json",
+  "exportadoEm": "2026-11-01T01:01:35.874Z",
+  "empresas": [
+    {
+      "end": "",
+      "link": "",
+      "resp": "Andreza",
+      "vt": 3640,
+      "mensal": 200,
+      "upg": 50,
+      "impl": 640,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86999902085",
+      "st": "perdido",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "",
+      "hist": [
+        {
+          "d": "2026-10-28",
+          "t": "Contato feito, ofertado ação de 30% de desconto na implantação"
+        },
+        {
+          "d": "2026-10-28",
+          "t": "Fechamento agendado para sexta às 9h dia 30/10"
+        },
+        {
+          "d": "2026-10-28",
+          "t": "Correção, fechamento é do tjr"
+        }
+      ],
+      "obs": "",
+      "id": 1,
+      "nome": "Lukinha Autopeças",
+      "prob": "media",
+      "ult": "2026-10-28",
+      "freq": "semanal"
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "Alex",
+      "vt": 4600,
+      "mensal": 0,
+      "upg": 0,
+      "impl": 0,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86999993983",
+      "st": "perdido",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "",
+      "hist": [],
+      "obs": "",
+      "id": 2,
+      "nome": "Construpiso",
+      "prob": "media",
+      "ult": "2026-10-28",
+      "freq": "semanal"
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "Micaela",
+      "vt": 4400,
+      "mensal": 180,
+      "upg": 100,
+      "impl": 560,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86995339017",
+      "st": "ganho",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "2026-10-29",
+      "hist": [
+        {
+          "d": "2026-10-28",
+          "t": "Contato feito,  agendado para amanha quinta às 9h fechamento com 30% de desconto na adesão"
+        },
+        {
+          "d": "2026-10-29",
+          "t": "Conferência do relatório oficial de outubro: venda em 29/10/2026; implantação de R$ 560,00 paga em 29/10; mensalidade nova de R$ 180,00/mês (base anual R$ 2.160,00); mensalidade de conversão/upgrade de R$ 100,00/mês (base anual R$ 1.200,00); comissão oficial desta empresa: R$ 201,60. Prazo máximo estimado para instalação: 06/11/2026 (5 dias úteis após a venda, sem contar fins de semana e o feriado de 02/11). Data real de instalação ainda não informada; primeiro vencimento será 30 dias corridos após a instalação.",
+          "k": "obs"
+        }
+      ],
+      "obs": "Upgrade venda mais 50, nfse 50,desconto de 30% na mensalidade ate sexta 30/10",
+      "id": 3,
+      "nome": "Alo Mecanica",
+      "prob": "alta",
+      "ult": "2026-10-28",
+      "freq": "semanal"
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "Joaquim",
+      "vt": 2840,
+      "mensal": 170,
+      "upg": 0,
+      "impl": 560,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86994690339",
+      "st": "ganho",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "2026-10-30",
+      "hist": [
+        {
+          "d": "2026-10-28",
+          "t": "Contato feito, ofertado desconto de 30% na adesão,  agendado para sexta às 9h 30/10"
+        },
+        {
+          "d": "2026-10-30",
+          "t": "Conferência do relatório oficial de outubro: venda em 30/10/2026; implantação de R$ 560,00 paga em 30/10; mensalidade nova com base anual de R$ 1.727,66 (aprox. R$ 143,97/mês) e conversão com base anual de R$ 312,23 (aprox. R$ 26,02/mês), total de aproximadamente R$ 169,99/mês, arredondado para R$ 170,00/mês no cadastro; comissão oficial desta empresa: R$ 135,59. Prazo máximo estimado para instalação: 09/11/2026 (5 dias úteis após a venda, sem contar fins de semana e o feriado de 02/11). Data real de instalação ainda não informada; primeiro vencimento será 30 dias corridos após a instalação.",
+          "k": "obs"
+        }
+      ],
+      "obs": "Ate sexta desconto de 30% na implantação,  de 800 por 560. Bonificado collector",
+      "id": 4,
+      "nome": "TJR Autopeças",
+      "prob": "alta",
+      "ult": "2026-10-28",
+      "freq": "semanal"
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "Nayara",
+      "vt": 0,
+      "mensal": 0,
+      "upg": 0,
+      "impl": 0,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86988409836",
+      "st": "perdido",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "",
+      "hist": [],
+      "obs": "",
+      "id": 6,
+      "nome": "Box São Jorge Autocenter",
+      "prob": "baixa",
+      "ult": "2026-10-28",
+      "freq": "semanal"
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "Fabiana",
+      "vt": 0,
+      "mensal": 0,
+      "upg": 0,
+      "impl": 0,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86995221414",
+      "st": "perdido",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "",
+      "hist": [],
+      "obs": "",
+      "id": 7,
+      "nome": "Hamburgueria",
+      "prob": "baixa",
+      "ult": "2026-10-28",
+      "freq": "semanal"
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "Luide",
+      "vt": 0,
+      "mensal": 650,
+      "upg": 0,
+      "impl": 3500,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86988446093",
+      "st": "perdido",
+      "prevf": "2026-11-16",
+      "motivo": "",
+      "fechadoEm": "",
+      "hist": [
+        {
+          "d": "2026-10-28",
+          "t": "Demora realizada, pediu para retornar em 15/11, mas esta pesquisando outros sistemas"
+        }
+      ],
+      "obs": "",
+      "id": 8,
+      "nome": "Mundo da Ceramica",
+      "prob": "baixa",
+      "ult": "2026-10-28",
+      "freq": "quinzenal"
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "Daniele",
+      "vt": 2960,
+      "mensal": 170,
+      "upg": 0,
+      "impl": 560,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86995153477",
+      "st": "ganho",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "2026-10-29",
+      "hist": [
+        {
+          "d": "2026-10-28",
+          "t": "Demo realizada, aguardando confirmação do cliente para fechamento"
+        },
+        {
+          "d": "2026-10-29",
+          "t": "Cliente fez o pagamento da implantação em 28/10, comprovante enviado para machado"
+        },
+        {
+          "d": "2026-10-29",
+          "t": "Conferência do relatório oficial de outubro: nome no relatório ROTA FARMA - TERESINA, confirmado como a mesma empresa deste cadastro Farmácia - Campo Maior; venda em 29/10/2026; implantação de R$ 560,00 paga em 29/10; mensalidade nova de R$ 170,00/mês (base anual R$ 2.040,00); comissão oficial desta empresa: R$ 135,60. Prazo máximo estimado para instalação: 06/11/2026 (5 dias úteis após a venda, sem contar fins de semana e o feriado de 02/11). Data real de instalação ainda não informada; primeiro vencimento será 30 dias corridos após a instalação. Correção da anotação anterior: o relatório oficial registra o pagamento da implantação em 29/10/2026, não 28/10.",
+          "k": "obs"
+        }
+      ],
+      "obs": "Oferta de 30% de desconto na implantação até sexta 30/10",
+      "id": 9,
+      "nome": "Farmacia - Campo Maior",
+      "prob": "alta",
+      "ult": "2026-10-29",
+      "freq": "diaria"
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "Junior",
+      "vt": 2520,
+      "mensal": 0,
+      "upg": 0,
+      "impl": 0,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86994212028",
+      "st": "perdido",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "",
+      "hist": [],
+      "obs": "",
+      "id": 10,
+      "nome": "Suporte Celular",
+      "prob": "baixa",
+      "ult": "2026-10-28",
+      "freq": "semanal"
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "Holismar",
+      "vt": 2760,
+      "mensal": 0,
+      "upg": 0,
+      "impl": 0,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86994604469",
+      "st": "perdido",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "",
+      "hist": [
+        {
+          "d": "2026-10-28",
+          "t": "Contato feito, mas nao demonstra interesse de fechar nesse momento"
+        }
+      ],
+      "obs": "",
+      "id": 11,
+      "nome": "Renata Calçados",
+      "prob": "baixa",
+      "ult": "2026-10-28",
+      "freq": "semanal"
+    },
+    {
+      "end": "Rua Bianor Garvalho, 5554, Vale Quem Tem, Teresina - PI, 64057-260",
+      "link": "https://www.google.com/maps?q=-5.05328,-42.747627",
+      "resp": "Izael",
+      "vt": 0,
+      "mensal": 160,
+      "upg": 0,
+      "impl": 0,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86999128036",
+      "st": "perdido",
+      "prevf": "2026-10-30",
+      "motivo": "",
+      "fechadoEm": "",
+      "hist": [
+        {
+          "d": "2026-10-28",
+          "t": "Origem: ativo visitado em 28/10/2026 · Rua Bianor Garvalho, 5554, Vale Quem Tem, Teresina - PI, 64057-260",
+          "k": "obs"
+        },
+        {
+          "d": "2026-10-29",
+          "t": "Autorizado liberação do valor de implantação, antecipando a primeira mensalidade no ato"
+        }
+      ],
+      "obs": "Está pesquisando alguns online,  por volta de 100, fazer orçamento com isenção de adesão",
+      "nome": "Izael cell",
+      "prob": "alta",
+      "ult": "2026-10-29",
+      "freq": "semanal",
+      "id": 1793210154506
+    },
+    {
+      "end": "",
+      "link": "",
+      "resp": "ANTONIETA",
+      "vt": 0,
+      "mensal": 180,
+      "upg": 50,
+      "impl": 560,
+      "instalacao": "",
+      "primeiroPgPago": "",
+      "tel": "86981837145",
+      "st": "ganho",
+      "prevf": "",
+      "motivo": "",
+      "fechadoEm": "2026-10-31",
+      "hist": [
+        {
+          "d": "2026-10-31",
+          "t": "Origem: ativo visitado em 30/10/2026",
+          "k": "obs"
+        },
+        {
+          "d": "2026-10-31",
+          "t": "Conferência do relatório oficial de outubro: venda em 31/10/2026; implantação de R$ 560,00 paga em 31/10; mensalidade nova de R$ 180,00/mês (base anual R$ 2.160,00); mensalidade de conversão/upgrade de R$ 50,00/mês (base anual R$ 600,00); mensalidade combinada de R$ 230,00/mês; comissão oficial desta empresa: R$ 171,60. Prazo máximo estimado para instalação: 09/11/2026 (5 dias úteis após a venda, sem contar fins de semana e o feriado de 02/11). Data real de instalação ainda não informada; primeiro vencimento será 30 dias corridos após a instalação.",
+          "k": "obs"
+        }
+      ],
+      "obs": "Cliente buscou informações pelo Instagram e foi direcionado para a unidade teresina, Demo realizada com Machado, valores implantação 560 ja com 30% de desconto até 31/10 ação autorizada, 180 mensal, 50 upgrade venda mais",
+      "nome": "OPTICA NOVO OLHAR",
+      "prob": "alta",
+      "ult": "2026-10-31",
+      "freq": "semanal",
+      "id": 1793451296063,
+      "indicadorAplicado": true
+    }
+  ]
+}
