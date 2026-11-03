@@ -318,20 +318,32 @@ function autoIndicadores(){
 }
 function save(){try{autoIndicadores();localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"ih",JSON.stringify(indHistory));localStorage.setItem(KEY+"ic",JSON.stringify(indConfigHistory));localStorage.setItem(KEY+"e",JSON.stringify(evo));localStorage.setItem(KEY+"com",JSON.stringify(comissoes))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
 function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
+function feriadosTrabalho(ano){
+  var f={};
+  function add(d){f[iso(d)]=true}
+  function fix(m,d){add(new Date(ano,m-1,d))}
+  [[1,1],[4,21],[5,1],[9,7],[10,12],[11,2],[11,15],[11,20],[12,25]].forEach(function(x){fix(x[0],x[1])});
+  fix(10,19); fix(8,16); fix(12,8);
+  var a=ano%19,b=Math.floor(ano/100),c=ano%100,d=Math.floor(b/4),e=b%4,fm=Math.floor((b+8)/25),g=Math.floor((b-fm+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mes=Math.floor((h+l-7*m+114)/31),dia=((h+l-7*m+114)%31)+1;
+  var pascoa=new Date(ano,mes-1,dia);
+  add(addDays(pascoa,-2)); add(addDays(pascoa,60));
+  return f;
+}
 function renderMetaDiaria(){
-  var hoje=iso(new Date()),mes=hoje.slice(0,7);
+  var hoje=iso(new Date()),mes=hoje.slice(0,7),ano=+mes.slice(0,4),feriados=feriadosTrabalho(ano);
+  function diaTrabalho(d){return d.getDay()!=0&&d.getDay()!=6&&!feriados[iso(d)]}
   function uteisRestantes(){
-    var n=0,d=parse(hoje),fim=parse(mes+"-"+String(new Date().getFullYear()==+mes.slice(0,4)?new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate():31).padStart(2,"0"));
-    for(var x=new Date(d);x<=fim;x=addDays(x,1))if(x.getDay()!=0&&x.getDay()!=6)n++;
-    return Math.max(1,n);
+    var fim=new Date(ano,+mes.slice(5,7),0),n=0;
+    for(var x=parse(hoje);x<=fim;x=addDays(x,1))if(diaTrabalho(x))n++;
+    return n;
   }
   function hojeAtivos(){return atv.filter(function(a){return atvCriadoEm(a)==hoje}).length}
-  function hojeVisitas(lista,kind){return lista.reduce(function(n,c){var vs=c.visitas||[{data:c.data}];return n+vs.filter(function(v){return v.data==hoje}).length},0)}
+  function hojeVisitas(lista){return lista.reduce(function(n,c){var vs=c.visitas||[{data:c.data}];return n+vs.filter(function(v){return v.data==hoje}).length},0)}
   var dias=uteisRestantes(),itens=[{k:"ativos",nome:"Novos ativos",hoje:hojeAtivos()},{k:"pos",nome:"Visitas a clientes",hoje:hojeVisitas(visitasClientes)},{k:"vis",nome:"Visitas a contadores",hoje:hojeVisitas(contadores)}];
   $("metaDiaria").innerHTML='<div class="daily-head"><h2>Meta diária de atividades</h2><span class="daily-note">Atualizado em '+parse(hoje).toLocaleDateString("pt-BR")+'</span></div><div class="daily-grid">'+itens.map(function(x){
-    var meta=+(ind&&ind.obj&&ind.obj[x.k])||0,feito=ind?iv(x.k):0,falta=Math.max(0,meta-feito),porDia=meta>0?Math.ceil(falta/dias):0;
-    return '<div class="daily-item"><small>'+x.nome+'</small><b class="num">'+(meta>0?porDia:"—")+'</b><span>'+(meta>0?'por dia · '+falta+' faltam no mês':'defina a meta mensal')+' · hoje: '+x.hoje+'</span></div>';
-  }).join("")+'</div><div class="daily-config">Cálculo: meta mensal menos realizado, dividido pelos dias úteis restantes (segunda a sexta). Ajuste os objetivos em Indicadores do mês.</div>';
+    var meta=+(ind&&ind.obj&&ind.obj[x.k])||0,feito=ind?iv(x.k):0,falta=Math.max(0,meta-feito),porDia=meta>0?(dias>0?Math.ceil(falta/dias):falta):0;
+    return '<div class="daily-item"><small>'+x.nome+'</small><b class="num">'+(meta>0?porDia:"—")+'</b><span>'+(meta>0?(dias>0?'por dia · '+falta+' faltam no mês':'prazo encerrado · '+falta+' pendentes')+' · hoje: '+x.hoje:'defina a meta mensal')+'</span></div>';
+  }).join("")+'</div><div class="daily-config">Cálculo: meta mensal menos realizado, dividido pelos dias úteis restantes. Exclui sábados, domingos e feriados nacionais, estaduais do Piauí e municipais de Teresina.</div>';
 }
 function render(){
   ensureIndMonth();var P=view=="pipe",A=view=="atv"||view=="atvprev";
