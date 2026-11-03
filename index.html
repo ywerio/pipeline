@@ -126,6 +126,7 @@ textarea.big{min-height:160px}
 .bi-progress i{display:block;height:100%;background:var(--ok);border-radius:99px}
 .bi-foot{font-size:12px;color:var(--mute);line-height:1.5}
 .bi-actions{display:flex;gap:8px;flex-wrap:wrap}
+.daily-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.daily-head h2{font-size:14px;margin:0}.daily-note{font-size:11px;color:var(--mute)}.daily-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.daily-item{background:var(--bg);border-radius:9px;padding:9px;min-width:0}.daily-item small{display:block;color:var(--mute);font-size:10px;line-height:1.3}.daily-item b{display:block;font-size:19px;margin:3px 0;overflow-wrap:anywhere}.daily-item span{font-size:10px;color:var(--mute)}.daily-config{font-size:12px;color:var(--mute);margin-top:8px}@media(max-width:380px){.daily-grid{grid-template-columns:1fr}.daily-item{display:grid;grid-template-columns:1fr auto;align-items:center}.daily-item b{grid-column:2;grid-row:1/3}.daily-item span{grid-column:1}}
 @media(min-width:680px){.bi-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.bi-panels{grid-template-columns:repeat(2,minmax(0,1fr))}.bi-hero h2{font-size:22px}}
 
 
@@ -185,6 +186,7 @@ body:not(.auth-locked) #loginScreen{display:none!important}
 <main>
   <div class="app-header"><button type="button" class="menu-toggle" id="menutoggle" aria-label="Abrir menu" aria-expanded="false">☰</button><div><h1>Pipeline</h1><p class="sub" style="margin:2px 0 0">Gestão comercial</p></div></div>
   <p class="sub" id="hoje"></p>
+  <section class="bi-panel" id="metaDiaria" aria-live="polite" style="margin:0 0 14px"></section>
   <p class="sub" id="stat" style="margin-top:-12px"></p>
   <div class="chips" id="tabs"></div>
   <section class="sum" id="sum"></section>
@@ -316,9 +318,24 @@ function autoIndicadores(){
 }
 function save(){try{autoIndicadores();localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"ih",JSON.stringify(indHistory));localStorage.setItem(KEY+"ic",JSON.stringify(indConfigHistory));localStorage.setItem(KEY+"e",JSON.stringify(evo));localStorage.setItem(KEY+"com",JSON.stringify(comissoes))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
 function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
+function renderMetaDiaria(){
+  var hoje=iso(new Date()),mes=hoje.slice(0,7);
+  function uteisRestantes(){
+    var n=0,d=parse(hoje),fim=parse(mes+"-"+String(new Date().getFullYear()==+mes.slice(0,4)?new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate():31).padStart(2,"0"));
+    for(var x=new Date(d);x<=fim;x=addDays(x,1))if(x.getDay()!=0&&x.getDay()!=6)n++;
+    return Math.max(1,n);
+  }
+  function hojeAtivos(){return atv.filter(function(a){return atvCriadoEm(a)==hoje}).length}
+  function hojeVisitas(lista,kind){return lista.reduce(function(n,c){var vs=c.visitas||[{data:c.data}];return n+vs.filter(function(v){return v.data==hoje}).length},0)}
+  var dias=uteisRestantes(),itens=[{k:"ativos",nome:"Novos ativos",hoje:hojeAtivos()},{k:"pos",nome:"Visitas a clientes",hoje:hojeVisitas(visitasClientes)},{k:"vis",nome:"Visitas a contadores",hoje:hojeVisitas(contadores)}];
+  $("metaDiaria").innerHTML='<div class="daily-head"><h2>Meta diária de atividades</h2><span class="daily-note">Atualizado em '+parse(hoje).toLocaleDateString("pt-BR")+'</span></div><div class="daily-grid">'+itens.map(function(x){
+    var meta=+(ind&&ind.obj&&ind.obj[x.k])||0,feito=ind?iv(x.k):0,falta=Math.max(0,meta-feito),porDia=meta>0?Math.ceil(falta/dias):0;
+    return '<div class="daily-item"><small>'+x.nome+'</small><b class="num">'+(meta>0?porDia:"—")+'</b><span>'+(meta>0?'por dia · '+falta+' faltam no mês':'defina a meta mensal')+' · hoje: '+x.hoje+'</span></div>';
+  }).join("")+'</div><div class="daily-config">Cálculo: meta mensal menos realizado, dividido pelos dias úteis restantes (segunda a sexta). Ajuste os objetivos em Indicadores do mês.</div>';
+}
 function render(){
   ensureIndMonth();var P=view=="pipe",A=view=="atv"||view=="atvprev";
-  ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("atvv").hidden=!A;$("contvv").hidden=view!="cont";$("visclientesvv").hidden=view!="visclientes";$("evovv").hidden=view!="evo";$("agendavv").hidden=view!="agenda";$("bivv").hidden=view!="bi";$("comvv").hidden=view!="com";
+  ["sum","alerts","meta","q","chips","lista"].forEach(function(i){$(i).hidden=!P});$("metaDiaria").hidden=!P;if(P)renderMetaDiaria();$("atvv").hidden=!A;$("contvv").hidden=view!="cont";$("visclientesvv").hidden=view!="visclientes";$("evovv").hidden=view!="evo";$("agendavv").hidden=view!="agenda";$("bivv").hidden=view!="bi";$("comvv").hidden=view!="com";
    $("tabs").innerHTML=[["pipe","⌂ Visão geral e potenciais"],["atv","✓ Ativos ("+atv.filter(function(a){return !a.conv}).length+")"],["agenda","▦ Agenda diária"],["cont","♙ Contadores ("+contadores.length+")"],["visclientes","♧ Visitas a clientes ("+visitasClientes.length+")"],["evo","↗ Evolução"],["bi","▤ Painel BI"],["com","R$ Comissões"]].map(function(f){return '<button class="chip" data-tab="'+f[0]+'" aria-pressed="'+(view==f[0])+'">'+f[1]+'</button>'}).join("");$("menulinks").innerHTML=$("tabs").innerHTML;
   if(view=="agenda"){renderAgenda();return}if(view=="atv"||view=="atvprev"){renderAtv();return}if(view=="cont"){renderContadores();return}if(view=="visclientes"){renderVisitasClientes();return}if(view=="evo"){renderEvo();return}if(view=="bi"){renderBI();return}if(view=="com"){renderComissoes();return}
   var hoje=parse(iso(new Date())),at=data.filter(function(c){return c.st=="ativo"});
