@@ -475,10 +475,10 @@ function card(c){
 function indicadorVazio(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}}
 function periodosMes(mes){
  var p=mes.split("-"),ano=+p[0],m=+p[1]-1,inicio=new Date(ano,m,1),fim=new Date(ano,m+1,0),out=[];
- for(var d=new Date(inicio);d<=fim;){var ate=new Date(d);ate.setDate(ate.getDate()+(7-(ate.getDay()||7)));if(ate>fim)ate=new Date(fim);out.push({inicio:iso(d),fim:iso(ate)});d=addDays(ate,1)}
+ for(var d=new Date(inicio);d<=fim;){var ate=new Date(d);ate.setDate(ate.getDate()+(7-(ate.getDay()||7)));if(ate>fim)ate=new Date(fim);var faixa={inicio:iso(d),fim:iso(ate)};if(diasUteisPeriodo(faixa)>0)out.push(faixa);d=addDays(ate,1)}
  return out;
 }
-function indicePeriodo(mes,ds){if(!ds||ds.slice(0,7)!==mes)return -1;var p=periodosMes(mes);for(var i=0;i<p.length;i++)if(ds>=p[i].inicio&&ds<=p[i].fim)return i;return -1}
+function indicePeriodo(mes,ds){if(!ds||ds.slice(0,7)!==mes)return -1;var p=periodosMes(mes);for(var i=0;i<p.length;i++)if(ds>=p[i].inicio&&ds<=p[i].fim)return i;if(p.length&&ds<p[0].inicio)return 0;if(p.length&&ds>p[p.length-1].fim)return p.length-1;return -1}
 function diaUtilIndicador(d,feriados){return d.getDay()!=0&&d.getDay()!=6&&!feriados[iso(d)]}
 function diasUteisPeriodo(periodo){var ano=+periodo.inicio.slice(0,4),feriados=feriadosTrabalho(ano),n=0;for(var d=parse(periodo.inicio);iso(d)<=periodo.fim;d=addDays(d,1))if(diaUtilIndicador(d,feriados))n++;return n}
 function diasUteisRestantes(mes,indice){var p=periodosMes(mes),n=0;for(var i=indice;i<p.length;i++)n+=diasUteisPeriodo(p[i]);return n}
