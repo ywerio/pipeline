@@ -606,7 +606,12 @@ function renderInd(){
     return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Período: '+fmI(k,wa)+' de '+fmI(k,wo)+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
     '<div class="pay num">Batidos: <b>'+c.hit+'/6</b> (mínimo '+ind.min+') · Indicadores '+brl.format(c.ind)+' · Plus '+brl.format(c.plus)+'<br><b>Total a receber: '+brl.format(c.ind+c.plus)+'</b></div><button class="pri" id="bi">Atualizar semana</button>'}
 function openInd(){
-  var periodos=periodosMes(ind.mes),h='<b>Indicadores do mês</b><div style="overflow-x:auto"><div class="ig" style="grid-template-columns:1.6fr repeat('+periodos.length+',minmax(58px,1fr));min-width:'+Math.max(440,160+periodos.length*66)+'px"><b>Objetivo mensal</b>'+periodos.map(function(p,i){return '<b>S'+(i+1)+'</b>'}).join("");
+  var periodos=periodosMes(ind.mes);
+  if(!Array.isArray(ind.ach))ind.ach=[];
+  periodos.forEach(function(p,i){if(!ind.ach[i])ind.ach[i]=indicadorVazio()});
+  if(!ind.obj)ind.obj={};if(!ind.peso)ind.peso={};if(!Array.isArray(ind.plus))ind.plus=[];
+  IK.forEach(function(k){if(ind.obj[k]==null)ind.obj[k]=0;if(ind.peso[k]==null)ind.peso[k]=0});
+  var h='<b>Indicadores do mês</b><div style="overflow-x:auto"><div class="ig" style="grid-template-columns:1.6fr repeat('+periodos.length+',minmax(58px,1fr));min-width:'+Math.max(440,160+periodos.length*66)+'px"><b>Objetivo mensal</b>'+periodos.map(function(p,i){return '<b>S'+(i+1)+'</b>'}).join("");
   IK.forEach(function(k){h+='<span>'+IN[k]+'<small style="display:block;color:var(--mute)">'+fmI(k,+ind.obj[k]||0)+'</small></span>'+periodos.map(function(p,i){return '<input type="number" inputmode="decimal" step="any" min="0" data-week="'+k+'" data-period="'+i+'" value="'+(+ind.ach[i][k]||0)+'" aria-label="'+IN[k]+' realizado na semana '+(i+1)+'">' }).join("")});
   h+='</div></div><b>Metas e pesos do mês</b><div class="ig2"><b></b><b>Objetivo</b><b>Peso (R$)</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span><input type="number" inputmode="decimal" step="any" min="0" data-o="'+k+'" value="'+ind.obj[k]+'"><input type="number" inputmode="decimal" step="any" min="0" data-p="'+k+'" value="'+ind.peso[k]+'">'}).join("")+'</div>';
   h+='<b>Plus (vendas)</b><div class="ig2"><b></b><b>A partir de (R$)</b><b>Adicional (R$)</b>'+ind.plus.map(function(t,i){return '<span>Faixa '+(i+1)+'</span><input type="number" inputmode="decimal" min="0" data-pm="'+i+'" value="'+t.meta+'"><input type="number" inputmode="decimal" min="0" data-pv="'+i+'" value="'+t.valor+'">'}).join("")+'</div>';
@@ -620,7 +625,7 @@ $("s5").onclick=function(){
   Q("input[data-p]",function(e){ind.peso[e.dataset.p]=+e.value||0});
   Q("input[data-pm]",function(e){ind.plus[+e.dataset.pm].meta=+e.value||0});
   Q("input[data-pv]",function(e){ind.plus[+e.dataset.pv].valor=+e.value||0});
-  ind.sem=semanaAtual;ind.min=+$("imin").value||4;ind.periodModel="segunda-domingo-mes-v1";save();$("dlg5").close();render()};
+  ind.sem=Math.max(0,Math.min(indicePeriodo(ind.mes,iso(new Date())),ind.ach.length-1));ind.min=+$("imin").value||4;ind.periodModel="segunda-domingo-mes-v1";save();$("dlg5").close();render()};
 $("nm").onclick=function(){
   if($("nm").textContent=="Iniciar novo mês"){$("nm").textContent="Toque de novo para zerar as 4 semanas";return}
   snapshotIndConfig(ind.mes);indConfigHistory[ind.mes].periodModel="segunda-domingo-mes-v1";indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});var d=parse(ind.mes+"-01");d.setMonth(d.getMonth()+1);ind.mes=iso(d).slice(0,7);ind.sem=0;ind.periodModel="segunda-domingo-mes-v1";
@@ -996,7 +1001,7 @@ $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade")
 var pipelineStarted=false;
 window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
 window.__pipelineResetState=function(){data=[];companyDataRevision="";meta={meta:0};ind=IND0();indHistory={};atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
-if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js?v=35").then(function(reg){return reg.update()}).catch(function(){});
 </script>
 
 <script type="module">
