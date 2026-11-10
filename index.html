@@ -965,6 +965,17 @@ window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true
 window.__pipelineResetState=function(){data=[];companyDataRevision="";meta={meta:0};ind=IND0();indHistory={};atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
+<script>
+// Fallback: keep the initializer available even if a prior top-level UI binding aborts the main script.
+if(typeof window.__pipelineStart!=="function"){
+  window.__pipelineStart=function(){
+    if(window.__pipelineStarted)return;
+    window.__pipelineStarted=true;
+    if(typeof load!=="function"||typeof setupEvo!=="function"||typeof render!=="function"||typeof initDb!=="function")throw new Error("O núcleo do Pipeline não foi inicializado corretamente.");
+    load();setupEvo();render();initDb();
+  };
+}
+</script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
