@@ -912,7 +912,7 @@ function gerarRelatorioPDF(){
  var sumSales=migracoes.reduce(function(a,v){return a+(+v.valor||0)},0)+upgrades.reduce(function(a,v){return a+(+v.mensal||0)*12},0);
  var comMig=migracoes.reduce(function(a,v){return a+(+v.comissao||0)},0),comUp=upgrades.reduce(function(a,v){return a+(+v.comissao||0)},0);
  var fmt= function(v){return brl.format(+v||0)};
- var bucketLabels=["Dias 1–7","Dias 8–14","Dias 15–21","Dias 22–fim"],weekV=semanas.map(function(x){return +x.vendas||0}),weekI=semanas.map(function(x){return +x.cac||0});
+ var periodosRel=periodosMes(mes),bucketLabels=periodosRel.map(function(x,i){return "P"+(i+1)}),weekV=semanas.map(function(x){return +x.vendas||0}),weekI=semanas.map(function(x){return +x.cac||0});
  var d0=parse(mes+"-01"),days=new Date(d0.getFullYear(),d0.getMonth()+1,0).getDate(),dailyA=[],dailyC=[],dailyCli=[];
  for(var day=1;day<=days;day++){var ds=mes+"-"+String(day).padStart(2,"0");dailyA.push(ativos.filter(function(a){return atvCriadoEm(a)==ds}).length);dailyC.push(contadores.reduce(function(n,c){return n+(c.visitas||[{data:c.data}]).filter(function(v){return v.data==ds}).length},0));dailyCli.push(visitasClientes.reduce(function(n,c){return n+(c.visitas||[{data:c.data}]).filter(function(v){return v.data==ds}).length},0))}
  var totalAtivos=ativos.length,totalVisC=visitasC,totalVisCli=visitasCli,totalDeals=fechados.length;
@@ -944,8 +944,8 @@ function gerarRelatorioPDF(){
    var step=Math.max(1,Math.ceil(days/15)),labs=[],vals=[];for(var z=0;z<days;z+=step){labs.push(String(z+1));vals.push(dailyA.slice(z,z+step).reduce(function(a,b){return a+b},0))}
    pdfBars(doc,labs,vals,16,y,178,32,String);y+=41;
    doc.text("Visitas a contadores e clientes por semana",14,y);y+=5;
-   var wkC=[0,0,0,0],wkCli=[0,0,0,0];for(var z=0;z<days;z++){var bi=Math.min(3,Math.floor(z/7));wkC[bi]+=dailyC[z];wkCli[bi]+=dailyCli[z]}
-   pdfBars(doc,["Sem 1","Sem 2","Sem 3","Sem 4"],wkC,17,y,82,35,String);pdfBars(doc,["Sem 1","Sem 2","Sem 3","Sem 4"],wkCli,111,y,82,35,String);y+=44;
+   var wkC=periodosRel.map(function(){return 0}),wkCli=periodosRel.map(function(){return 0});for(var z=0;z<days;z++){var ds=mes+"-"+String(z+1).padStart(2,"0"),bi=indicePeriodo(mes,ds);if(bi>=0){wkC[bi]+=dailyC[z];wkCli[bi]+=dailyCli[z]}}
+   pdfBars(doc,bucketLabels,wkC,17,y,82,35,String);pdfBars(doc,bucketLabels,wkCli,111,y,82,35,String);y+=44;
    y=pdfSection(doc,"FUNIL COMERCIAL",y);
    pdfKpi(doc,14,y,43,"EM NEGOCIACAO",String(emAberto.length));pdfKpi(doc,60,y,43,"FECHADOS GANHOS",String(totalDeals));pdfKpi(doc,106,y,43,"FECHADOS PERDIDOS",String(perdidos.length));pdfKpi(doc,152,y,44,"CONVERSAO",taxa+"%");y+=27;
    y=pdfText(doc,"Valor potencial em negociacao: "+fmt(emAberto.reduce(function(a,c){return a+total(c)},0))+". Valor total dos contratos ganhos no periodo: "+fmt(fechados.reduce(function(a,c){return a+total(c)},0))+".",14,y,W,8);
