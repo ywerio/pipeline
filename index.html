@@ -587,7 +587,18 @@ function IND0(){var mes=iso(new Date()).slice(0,7);return {v:3,periodModel:"segu
 function snapshotIndConfig(mes){if(!mes||!ind)return;if(!indConfigHistory[mes])indConfigHistory[mes]={obj:Object.assign({},ind.obj),peso:Object.assign({},ind.peso),plus:(ind.plus||[]).map(function(p){return {meta:+p.meta||0,valor:+p.valor||0}}),min:+ind.min||4,periodModel:"segunda-domingo-mes-v1"}}
 function ensureIndMonth(){var mes=iso(new Date()).slice(0,7);if(!ind||!ind.ach)return;if(ind.mes!==mes){if(ind.mes){indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});snapshotIndConfig(ind.mes);if(indConfigHistory[ind.mes])indConfigHistory[ind.mes].periodModel="segunda-domingo-mes-v1"}ind.mes=mes;ind.sem=Math.max(0,indicePeriodo(mes,iso(new Date())));ind.periodModel="segunda-domingo-mes-v1";ind.ach=periodosMes(mes).map(function(){return indicadorVazio()});delete ind.autoSnapshot;save();}}
 function iv(k){return ind.ach.reduce(function(a,w){return a+(+w[k]||0)},0)}
-function wobj(k,w){var d=0;for(var i=0;i<w;i++)d+=+ind.ach[i][k]||0;return distribuirSaldoPorDiasUteis(ind.mes,w,Math.max(0,(+ind.obj[k]||0)-d))[0]||0}
+function valoresFinanceirosPorPeriodo(k){
+ var salvo=ind.ach.map(function(w){return +w[k]||0});
+ if(k!=="vendas"&&k!=="cac")return salvo;
+ var chave=k==="cac"?"importacao":"vendas",periodos=periodosMes(ind.mes),calculado=periodos.map(function(p){
+  var soma=0;for(var d=parse(p.inicio);iso(d)<=p.fim;d=addDays(d,1))soma+=valorDia(chave,iso(d));
+  return Math.round(soma*100)/100;
+ }),totalCalculado=calculado.reduce(function(a,b){return a+b},0);
+ // Só substitui a distribuição antiga quando os lançamentos datados explicam integralmente o total mensal já salvo.
+ return Math.abs(totalCalculado-iv(k))<=0.02?calculado:salvo;
+}
+function realizadoIndicadorPeriodo(k,i){return valoresFinanceirosPorPeriodo(k)[i]||0}
+function wobj(k,w){var valores=valoresFinanceirosPorPeriodo(k),d=0;for(var i=0;i<w;i++)d+=+valores[i]||0;return distribuirSaldoPorDiasUteis(ind.mes,w,Math.max(0,(+ind.obj[k]||0)-d))[0]||0}
 function fmI(k,v){return IM[k]?brl.format(v):(Math.round(v*10)/10).toLocaleString("pt-BR")}
 function calcInd(){var hit=0,pago=0,vv=iv("vendas"),pl=0;
   IK.forEach(function(k){if(iv(k)>=ind.obj[k])hit++});
@@ -597,12 +608,12 @@ function calcInd(){var hit=0,pago=0,vv=iv("vendas"),pl=0;
 function renderInd(){
   var c=calcInd(),w=Math.max(0,Math.min(ind.sem,ind.ach.length-1)),periodos=periodosMes(ind.mes),mes=parse(ind.mes+"-01").toLocaleDateString("pt-BR",{month:"long",year:"numeric"}),periodo=periodos[w];
   $("meta").innerHTML='<b>Indicadores de '+mes+'</b> · período '+(w+1)+' de '+periodos.length+' ('+parse(periodo.inicio).toLocaleDateString("pt-BR")+' a '+parse(periodo.fim).toLocaleDateString("pt-BR")+')<div class="ind">'+IK.map(function(k){
-    var a=iv(k),o=ind.obj[k],p=o>0?a/o*100:0,wo=wobj(k,w),wa=+ind.ach[w][k]||0;
+    var a=iv(k),o=ind.obj[k],p=o>0?a/o*100:0,wo=wobj(k,w),wa=realizadoIndicadorPeriodo(k,w);
     return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Período: '+fmI(k,wa)+' de '+fmI(k,wo)+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
     '<div class="pay num">Batidos: <b>'+c.hit+'/6</b> (mínimo '+ind.min+') · Indicadores '+brl.format(c.ind)+' · Plus '+brl.format(c.plus)+'<br><b>Total a receber: '+brl.format(c.ind+c.plus)+'</b></div><button class="pri" id="bi">Atualizar semana</button>'}
 function openInd(){
   var W4=ind.ach.map(function(_,i){return i}),periodos=periodosMes(ind.mes),selecionado=Math.max(0,Math.min(ind.sem,W4.length-1)),h='<label>Semana atual<select id="isem">'+W4.map(function(i){return '<option value="'+i+'"'+(i==ind.sem?' selected':'')+'>Semana '+(i+1)+' · '+parse(periodos[i].inicio).toLocaleDateString("pt-BR")+' a '+parse(periodos[i].fim).toLocaleDateString("pt-BR")+'</option>'}).join("")+'</select></label>';
-  h+='<b>Realizado e meta recalculada por semana</b><div class="ig" style="grid-template-columns:1.5fr repeat('+W4.length+',minmax(62px,1fr))"><b></b>'+W4.map(function(i){return '<b>S'+(i+1)+'</b>'}).join("")+IK.map(function(k){var realizadoAte=0;for(var z=0;z<=selecionado;z++)realizadoAte+=(+ind.ach[z][k]||0);var metasFuturas=distribuirSaldoPorDiasUteis(ind.mes,selecionado+1,Math.max(0,(+ind.obj[k]||0)-realizadoAte));return '<span>'+IN[k]+'</span>'+W4.map(function(i){var realizado=+ind.ach[i][k]||0,esperado=i<selecionado?null:i===selecionado?wobj(k,selecionado):metasFuturas[i-selecionado-1],metaTexto=esperado===null?'Fechada':'Meta '+fmI(k,esperado);return '<div><input type="number" inputmode="decimal" step="any" min="0" data-w="'+i+'" data-k="'+k+'" value="'+realizado+'"><small style="display:block;color:var(--mute);font-size:10px">'+metaTexto+'</small></div>'}).join("")}).join("")+'</div>';
+  h+='<b>Realizado e meta recalculada por semana</b><div class="ig" style="grid-template-columns:1.5fr repeat('+W4.length+',minmax(62px,1fr))"><b></b>'+W4.map(function(i){return '<b>S'+(i+1)+'</b>'}).join("")+IK.map(function(k){var valores=valoresFinanceirosPorPeriodo(k),realizadoAte=0;for(var z=0;z<=selecionado;z++)realizadoAte+=(+valores[z]||0);var metasFuturas=distribuirSaldoPorDiasUteis(ind.mes,selecionado+1,Math.max(0,(+ind.obj[k]||0)-realizadoAte));return '<span>'+IN[k]+'</span>'+W4.map(function(i){var realizado=+valores[i]||0,esperado=i<selecionado?null:i===selecionado?wobj(k,selecionado):metasFuturas[i-selecionado-1],metaTexto=esperado===null?'Fechada':'Meta '+fmI(k,esperado);return '<div><input type="number" inputmode="decimal" step="any" min="0" data-w="'+i+'" data-k="'+k+'" value="'+realizado+'"><small style="display:block;color:var(--mute);font-size:10px">'+metaTexto+'</small></div>'}).join("")}).join("")+'</div>';
   h+='<b>Metas e pesos do mês</b><div class="ig2"><b></b><b>Objetivo</b><b>Peso (R$)</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span><input type="number" inputmode="decimal" step="any" min="0" data-o="'+k+'" value="'+ind.obj[k]+'"><input type="number" inputmode="decimal" step="any" min="0" data-p="'+k+'" value="'+ind.peso[k]+'">'}).join("")+'</div>';
   h+='<b>Plus (vendas)</b><div class="ig2"><b></b><b>A partir de (R$)</b><b>Adicional (R$)</b>'+ind.plus.map(function(t,i){return '<span>Faixa '+(i+1)+'</span><input type="number" inputmode="decimal" min="0" data-pm="'+i+'" value="'+t.meta+'"><input type="number" inputmode="decimal" min="0" data-pv="'+i+'" value="'+t.valor+'">'}).join("")+'</div>';
   h+='<label>Mínimo de indicadores batidos para receber<input type="number" id="imin" min="1" max="6" value="'+ind.min+'"></label>';
