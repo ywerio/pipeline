@@ -600,7 +600,7 @@ function calcInd(){var hit=0,pago=0,vv=iv("vendas"),pl=0;
   ind.plus.forEach(function(t){if(hit>=ind.min&&t.meta>0&&vv>=t.meta)pl+=+t.valor||0});
   return {hit:hit,ind:pago,plus:pl}}
 function renderInd(){
-  var c=calcInd(),w=Math.max(0,Math.min(indicePeriodo(ind.mes,iso(new Date())),ind.ach.length-1)),periodos=periodosMes(ind.mes),mes=parse(ind.mes+"-01").toLocaleDateString("pt-BR",{month:"long",year:"numeric"}),periodo=periodos[w];
+  var w=Math.max(0,Math.min(indicePeriodo(ind.mes,iso(new Date())),ind.ach.length-1));ind.sem=w;var c=calcInd(),periodos=periodosMes(ind.mes),mes=parse(ind.mes+"-01").toLocaleDateString("pt-BR",{month:"long",year:"numeric"}),periodo=periodos[w];
   $("meta").innerHTML='<b>Indicadores de '+mes+'</b> · período '+(w+1)+' de '+periodos.length+' ('+parse(periodo.inicio).toLocaleDateString("pt-BR")+' a '+parse(periodo.fim).toLocaleDateString("pt-BR")+')<div class="ind">'+IK.map(function(k){
     var a=iv(k),o=ind.obj[k],p=o>0?a/o*100:0,wo=wobj(k,w),wa=realizadoIndicadorPeriodo(k,w);
     return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Período: '+fmI(k,wa)+' de '+fmI(k,wo)+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
@@ -620,7 +620,7 @@ $("s5").onclick=function(){
   Q("input[data-p]",function(e){ind.peso[e.dataset.p]=+e.value||0});
   Q("input[data-pm]",function(e){ind.plus[+e.dataset.pm].meta=+e.value||0});
   Q("input[data-pv]",function(e){ind.plus[+e.dataset.pv].valor=+e.value||0});
-  ind.sem=+$("isem").value;ind.min=+$("imin").value||4;ind.periodModel="segunda-domingo-mes-v1";save();$("dlg5").close();render()};
+  ind.sem=semanaAtual;ind.min=+$("imin").value||4;ind.periodModel="segunda-domingo-mes-v1";save();$("dlg5").close();render()};
 $("nm").onclick=function(){
   if($("nm").textContent=="Iniciar novo mês"){$("nm").textContent="Toque de novo para zerar as 4 semanas";return}
   snapshotIndConfig(ind.mes);indConfigHistory[ind.mes].periodModel="segunda-domingo-mes-v1";indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});var d=parse(ind.mes+"-01");d.setMonth(d.getMonth()+1);ind.mes=iso(d).slice(0,7);ind.sem=0;ind.periodModel="segunda-domingo-mes-v1";
