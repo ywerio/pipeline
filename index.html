@@ -9,9 +9,6 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Pipeline V1</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">$("biRefresh").onclick=function(){renderBI()};
-</script>
 <style>
 :root{--bg:#EEF1F4;--surface:#fff;--ink:#17222D;--mute:#5E6C79;--line:#D8DEE4;--brand:#1F4E79;--on-brand:#fff;
 --alta:#C23B22;--alta-bg:#FBE9E5;--media:#9A6A00;--media-bg:#FBF1D9;--baixa:#3F6A8C;--baixa-bg:#E3EDF5;--ok:#1E7A4C;
@@ -280,6 +277,19 @@ body:not(.auth-locked) #loginScreen{display:none!important}
 <dialog id="dlg7"><form onsubmit="return false"><h2 id="ctitle">Novo contador</h2><label>Nome do escritório<input id="cescritorio" maxlength="100" required placeholder="Ex.: Escritório Contábil Silva"></label><label>Nome do contador<input id="cnome" maxlength="80" placeholder="Nome do contador"></label><label>Telefone / WhatsApp<input id="ctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="crua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="cbairro" maxlength="80"></label><label>Cidade<input id="ccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="clink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="ccancel">Cancelar</button><button type="button" class="pri" id="csave">Salvar contador</button></div></form></dialog>
 <script>
 var KEY="pipeline_v3",companyDataRevision="",ind=null,indHistory={},indConfigHistory={},atv=[],contadores=[],visitasClientes=[],evo={},comissoes=[],view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null,vendaClienteId=null;
+var pipelineStarted=false,__pipelineLibPromises={};
+window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
+function carregarBiblioteca(url,nomeGlobal){
+ if(window[nomeGlobal])return Promise.resolve(window[nomeGlobal]);
+ if(__pipelineLibPromises[url])return __pipelineLibPromises[url];
+ __pipelineLibPromises[url]=new Promise(function(resolve,reject){
+  var script=document.createElement("script");script.src=url;script.async=true;
+  script.onload=function(){if(window[nomeGlobal])resolve(window[nomeGlobal]);else{delete __pipelineLibPromises[url];reject(new Error("Biblioteca não inicializada: "+nomeGlobal))}};
+  script.onerror=function(){delete __pipelineLibPromises[url];reject(new Error("Falha ao carregar biblioteca: "+nomeGlobal))};
+  document.head.appendChild(script);
+ });
+ return __pipelineLibPromises[url];
+}
 var NIV={alta:"Alta probabilidade",media:"Média probabilidade",baixa:"Baixa probabilidade"};
 var WA_MENSAGEM="Olá, tudo bem? 😊\n\nSou Vargas, consultor comercial da Softcom Tecnologia.\n\nTrabalho com uma solução de gestão moderna, com banco de dados em nuvem e garantia de um sistema sempre atualizado e preparado para acompanhar as mudanças e exigências das regras fiscais.\n\nGostaria de saber se podemos agendar uma breve demonstração para você conhecer a solução e ver como ela pode ajudar no dia a dia da sua empresa.\n\nO que acha? 🤝";
 var W={alta:.8,media:.4,baixa:.1};
@@ -847,6 +857,7 @@ function build(){
 }
 $("xl").onclick=async function(){
   $("dlgExport").close();try{
+    await carregarBiblioteca("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js","XLSX");
     var dl=window.claude&&claude.use?await claude.use("downloads"):null;
     
     var buf=XLSX.write(build(),{bookType:"xlsx",type:"array",cellDates:true});
@@ -869,8 +880,9 @@ function pdfText(doc,txt,x,y,w,size){doc.setFontSize(size||9);var lines=doc.spli
 function pdfSection(doc,title,y){doc.setFillColor(31,78,121);doc.roundedRect(14,y-5,182,9,2,2,"F");doc.setTextColor(255,255,255);doc.setFontSize(10);doc.text(title,19,y+1);doc.setTextColor(30,40,50);return y+12}
 function pdfKpi(doc,x,y,w,label,value){doc.setDrawColor(218,225,232);doc.setFillColor(247,249,251);doc.roundedRect(x,y,w,20,2,2,"FD");doc.setTextColor(90,105,120);doc.setFontSize(7);doc.text(label,x+3,y+6);doc.setTextColor(31,78,121);doc.setFont("helvetica","bold");doc.setFontSize(11);doc.text(String(value),x+3,y+14);doc.setFont("helvetica","normal")}
 function pdfBars(doc,labels,values,x,y,w,h,fmt){var max=Math.max(1,...values);var gap=4,bw=(w-gap*(values.length-1))/values.length;values.forEach(function(v,i){var bh=Math.max(1,(v/max)*(h-13)),bx=x+i*(bw+gap);doc.setFillColor(31,78,121);doc.roundedRect(bx,y+h-11-bh,bw,bh,1,1,"F");doc.setTextColor(65,75,85);doc.setFontSize(7);doc.text(labels[i],bx+bw/2,y+h,{align:"center"});doc.setFontSize(6);doc.text(fmt?fmt(v):String(v),bx+bw/2,y+h-14-bh,{align:"center"})})}
-function gerarRelatorioPDF(){
- var lib=window.jspdf&&window.jspdf.jsPDF;if(!lib){alert("O gerador de PDF ainda não carregou. Verifique sua conexão e tente novamente.");return}
+async function gerarRelatorioPDF(){
+ try{await carregarBiblioteca("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js","jspdf")}catch(e){alert("Não foi possível carregar o gerador de PDF. Verifique sua conexão e tente novamente.");return}
+ var lib=window.jspdf&&window.jspdf.jsPDF;if(!lib){alert("O gerador de PDF não ficou disponível.");return}
  var mes=$("pdfMonth").value||iso(new Date()).slice(0,7),modo=document.querySelector('input[name="pdfMode"]:checked')?.value||"simple";
  var doc=new lib({orientation:"portrait",unit:"mm",format:"a4"}),W=182,mesTxt=pdfMonthName(mes),hoje=iso(new Date());
  var indV=indicadorMes(mes,"vendas"),indI=indicadorMes(mes,"importacao");
@@ -960,8 +972,7 @@ $("backupJson").onclick=function(){$("dlgExport").close();backupCompleto()};$("e
 function openMenu(){$("menudrawer").classList.add("open");$("menudrawer").setAttribute("aria-hidden","false");$("menushade").hidden=false;$("menutoggle").setAttribute("aria-expanded","true")}
 function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").setAttribute("aria-hidden","true");$("menushade").hidden=true;$("menutoggle").setAttribute("aria-expanded","false")}
 $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade").onclick=closeMenu;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
-var pipelineStarted=false;
-window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
+if($("biRefresh"))$("biRefresh").onclick=function(){renderBI()};
 window.__pipelineResetState=function(){data=[];companyDataRevision="";meta={meta:0};ind=IND0();indHistory={};atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
