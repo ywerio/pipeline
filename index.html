@@ -588,14 +588,8 @@ function snapshotIndConfig(mes){if(!mes||!ind)return;if(!indConfigHistory[mes])i
 function ensureIndMonth(){var mes=iso(new Date()).slice(0,7);if(!ind||!ind.ach)return;if(ind.mes!==mes){if(ind.mes){indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});snapshotIndConfig(ind.mes);if(indConfigHistory[ind.mes])indConfigHistory[ind.mes].periodModel="segunda-domingo-mes-v1"}ind.mes=mes;ind.sem=Math.max(0,indicePeriodo(mes,iso(new Date())));ind.periodModel="segunda-domingo-mes-v1";ind.ach=periodosMes(mes).map(function(){return indicadorVazio()});delete ind.autoSnapshot;save();}}
 function iv(k){return ind.ach.reduce(function(a,w){return a+(+w[k]||0)},0)}
 function valoresFinanceirosPorPeriodo(k){
- var salvo=ind.ach.map(function(w){return +w[k]||0});
- if(k!=="vendas"&&k!=="cac")return salvo;
- var chave=k==="cac"?"importacao":"vendas",periodos=periodosMes(ind.mes),calculado=periodos.map(function(p){
-  var soma=0;for(var d=parse(p.inicio);iso(d)<=p.fim;d=addDays(d,1))soma+=valorDia(chave,iso(d));
-  return Math.round(soma*100)/100;
- }),totalCalculado=calculado.reduce(function(a,b){return a+b},0);
- // Só substitui a distribuição antiga quando os lançamentos datados explicam integralmente o total mensal já salvo.
- return Math.abs(totalCalculado-iv(k))<=0.02?calculado:salvo;
+ // Todos os indicadores usam a mesma fonte: realizado semanal salvo no modal.
+ return ind.ach.map(function(w){return +w[k]||0});
 }
 function realizadoIndicadorPeriodo(k,i){return valoresFinanceirosPorPeriodo(k)[i]||0}
 function wobj(k,w){var valores=valoresFinanceirosPorPeriodo(k),d=0;for(var i=0;i<w;i++)d+=+valores[i]||0;return distribuirSaldoPorDiasUteis(ind.mes,w,Math.max(0,(+ind.obj[k]||0)-d))[0]||0}
@@ -619,7 +613,7 @@ function openInd(){
   h+='<label>Mínimo de indicadores batidos para receber<input type="number" id="imin" min="1" max="6" value="'+ind.min+'"></label>';
   $("ib").innerHTML=h;$("nm").textContent="Iniciar novo mês";$("dlg5").showModal()}
 function Q(sel,fn){Array.prototype.forEach.call($("ib").querySelectorAll(sel),fn)}
-$("c5").onclick=function(){$("dlg5").close()};
+$("c5").onclick=function(){$("dlg5").close()};$("dlg5").addEventListener("close",function(){render()});
 $("s5").onclick=function(){
   Q("input[data-w]",function(e){ind.ach[+e.dataset.w][e.dataset.k]=+e.value||0});
   Q("input[data-o]",function(e){ind.obj[e.dataset.o]=+e.value||0});
