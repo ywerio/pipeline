@@ -280,6 +280,8 @@ body:not(.auth-locked) #loginScreen{display:none!important}
 <dialog id="dlg7"><form onsubmit="return false"><h2 id="ctitle">Novo contador</h2><label>Nome do escritório<input id="cescritorio" maxlength="100" required placeholder="Ex.: Escritório Contábil Silva"></label><label>Nome do contador<input id="cnome" maxlength="80" placeholder="Nome do contador"></label><label>Telefone / WhatsApp<input id="ctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="crua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="cbairro" maxlength="80"></label><label>Cidade<input id="ccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="clink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="ccancel">Cancelar</button><button type="button" class="pri" id="csave">Salvar contador</button></div></form></dialog>
 <script>
 var KEY="pipeline_v3",companyDataRevision="",ind=null,indHistory={},indConfigHistory={},atv=[],contadores=[],visitasClientes=[],evo={},comissoes=[],view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null,vendaClienteId=null;
+var pipelineStarted=false;
+window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
 
 var NIV={alta:"Alta probabilidade",media:"Média probabilidade",baixa:"Baixa probabilidade"};
 var WA_MENSAGEM="Olá, tudo bem? 😊\n\nSou Vargas, consultor comercial da Softcom Tecnologia.\n\nTrabalho com uma solução de gestão moderna, com banco de dados em nuvem e garantia de um sistema sempre atualizado e preparado para acompanhar as mudanças e exigências das regras fiscais.\n\nGostaria de saber se podemos agendar uma breve demonstração para você conhecer a solução e ver como ela pode ajudar no dia a dia da sua empresa.\n\nO que acha? 🤝";
@@ -962,8 +964,7 @@ $("backupJson").onclick=function(){$("dlgExport").close();backupCompleto()};$("e
 function openMenu(){$("menudrawer").classList.add("open");$("menudrawer").setAttribute("aria-hidden","false");$("menushade").hidden=false;$("menutoggle").setAttribute("aria-expanded","true")}
 function closeMenu(){$("menudrawer").classList.remove("open");$("menudrawer").setAttribute("aria-hidden","true");$("menushade").hidden=true;$("menutoggle").setAttribute("aria-expanded","false")}
 $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade").onclick=closeMenu;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
-var pipelineStarted=false;
-window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
+
 window.__pipelineResetState=function(){data=[];companyDataRevision="";meta={meta:0};ind=IND0();indHistory={};atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
