@@ -300,7 +300,7 @@ function esc(s){var e=document.createElement("div");e.textContent=s;return e.inn
 function norm(c){return Object.assign({end:"",link:"",resp:"",vt:0,mensal:0,upg:0,impl:0,instalacao:"",primeiroPgPago:"",tel:"",st:"ativo",prevf:"",motivo:"",fechadoEm:"",hist:[],obs:""},c)}
 function load(){
   try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0);var cv0=localStorage.getItem(KEY+"c");if(cv0)contadores=JSON.parse(cv0);var vc0=localStorage.getItem(KEY+"vc");if(vc0)visitasClientes=JSON.parse(vc0);var ih0=localStorage.getItem(KEY+"ih");if(ih0)indHistory=JSON.parse(ih0);var ic0=localStorage.getItem(KEY+"ic");if(ic0)indConfigHistory=JSON.parse(ic0);var ev0=localStorage.getItem(KEY+"e");if(ev0)evo=JSON.parse(ev0);var cm0=localStorage.getItem(KEY+"com");if(cm0)comissoes=JSON.parse(cm0)}catch(e){}
-  if(!ind)ind=IND0();fixInd();autoIndicadores();ensureIndMonth();
+  if(!ind)ind=IND0();fixInd();autoIndicadores();ensureIndMonth();syncIndWeek();
 }
 function autoIndicadores(){
  if(!ind||!ind.ach)return;
@@ -558,7 +558,7 @@ function fixInd(){if(ind&&!ind.v){ind.v=2;if(ind.plus&&ind.plus[0]&&ind.plus[1]&
 function IND0(){var mes=iso(new Date()).slice(0,7);return {v:2,mes:mes,sem:Math.min(3,Math.floor((new Date().getDate()-1)/7)),min:4,obj:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},peso:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},ach:[{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}],plus:[]}}
 function snapshotIndConfig(mes){if(!mes||!ind)return;if(!indConfigHistory[mes])indConfigHistory[mes]={obj:Object.assign({},ind.obj),peso:Object.assign({},ind.peso),plus:(ind.plus||[]).map(function(p){return {meta:+p.meta||0,valor:+p.valor||0}}),min:+ind.min||4}}
 function ensureIndMonth(){var mes=iso(new Date()).slice(0,7);if(!ind||!ind.ach)return;if(ind.mes!==mes){if(ind.mes){indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});snapshotIndConfig(ind.mes)}ind.mes=mes;ind.sem=Math.min(3,Math.floor((new Date().getDate()-1)/7));ind.ach=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});delete ind.autoSnapshot;save();}}
-function iv(k){return ind.ach.reduce(function(a,w){return a+(+w[k]||0)},0)}
+function syncIndWeek(){if(!ind||!ind.ach)return;var d=new Date().getDate();ind.sem=d<=7?0:d<=14?1:d<=21?2:3;}\nfunction iv(k){return ind.ach.reduce(function(a,w){return a+(+w[k]||0)},0)}
 function wobj(k,w){var d=0;for(var i=0;i<w;i++)d+=+ind.ach[i][k]||0;return Math.max(0,ind.obj[k]-d)/(4-w)}
 function fmI(k,v){return IM[k]?brl.format(v):(Math.round(v*10)/10).toLocaleString("pt-BR")}
 function calcInd(){var hit=0,pago=0,vv=iv("vendas"),pl=0;
@@ -570,7 +570,7 @@ function renderInd(){
   var c=calcInd(),w=ind.sem,mes=parse(ind.mes+"-01").toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
   $("meta").innerHTML='<b>Indicadores de '+mes+'</b> · semana '+(w+1)+' de 4<div class="ind">'+IK.map(function(k){
     var a=iv(k),o=ind.obj[k],p=o>0?a/o*100:0,wo=wobj(k,w),wa=+ind.ach[w][k]||0;
-    return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Semana: '+fmI(k,wa)+' de '+fmI(k,wo)+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
+    return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Semana: '+fmI(k,wa)+' de '+fmI(k,wo)+' · Faltam: '+fmI(k,Math.max(0,wo-wa))+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
     '<div class="pay num">Batidos: <b>'+c.hit+'/6</b> (mínimo '+ind.min+') · Indicadores '+brl.format(c.ind)+' · Plus '+brl.format(c.plus)+'<br><b>Total a receber: '+brl.format(c.ind+c.plus)+'</b></div><button class="pri" id="bi">Atualizar semana</button>'}
 function openInd(){
   var W4=[0,1,2,3],h='<label>Semana atual<select id="isem">'+W4.map(function(i){return '<option value="'+i+'"'+(i==ind.sem?' selected':'')+'>Semana '+(i+1)+'</option>'}).join("")+'</select></label>';
@@ -798,7 +798,7 @@ window.__pipelineMergeCompanies=function(rows,revision){
 };
 window.__pipelineApplyState=function(j){
   if(!j||!Array.isArray(j.data))throw new Error("Backup da nuvem inválido");
-  data=j.data.map(norm);companyDataRevision=j.companyDataRevision||"";meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}indHistory=j.indHistory||{};if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;if(Array.isArray(j.comissoes))comissoes=j.comissoes;autoIndicadores();ensureIndMonth();
+  data=j.data.map(norm);companyDataRevision=j.companyDataRevision||"";meta=j.meta||meta;if(j.ind){ind=j.ind;fixInd()}indHistory=j.indHistory||{};if(j.atv)atv=j.atv;if(j.contadores)contadores=j.contadores;if(j.visitasClientes)visitasClientes=j.visitasClientes;if(j.evo)evo=j.evo;if(Array.isArray(j.comissoes))comissoes=j.comissoes;autoIndicadores();ensureIndMonth();syncIndWeek();
   localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"ih",JSON.stringify(indHistory));localStorage.setItem(KEY+"e",JSON.stringify(evo));localStorage.setItem(KEY+"com",JSON.stringify(comissoes));render();
 };
 function build(){
