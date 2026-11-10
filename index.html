@@ -300,19 +300,18 @@ function esc(s){var e=document.createElement("div");e.textContent=s;return e.inn
 function norm(c){return Object.assign({end:"",link:"",resp:"",vt:0,mensal:0,upg:0,impl:0,instalacao:"",primeiroPgPago:"",tel:"",st:"ativo",prevf:"",motivo:"",fechadoEm:"",hist:[],obs:""},c)}
 function load(){
   try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0);var cv0=localStorage.getItem(KEY+"c");if(cv0)contadores=JSON.parse(cv0);var vc0=localStorage.getItem(KEY+"vc");if(vc0)visitasClientes=JSON.parse(vc0);var ih0=localStorage.getItem(KEY+"ih");if(ih0)indHistory=JSON.parse(ih0);var ic0=localStorage.getItem(KEY+"ic");if(ic0)indConfigHistory=JSON.parse(ic0);var ev0=localStorage.getItem(KEY+"e");if(ev0)evo=JSON.parse(ev0);var cm0=localStorage.getItem(KEY+"com");if(cm0)comissoes=JSON.parse(cm0)}catch(e){}
-  if(!ind)ind=IND0();fixInd();autoIndicadores();ensureIndMonth();
+  if(!ind)ind=IND0();fixInd();normalizarPeriodosIndicadores();autoIndicadores();ensureIndMonth();
 }
 function autoIndicadores(){
  if(!ind||!ind.ach)return;
- var mes=ind.mes||iso(new Date()).slice(0,7),auto=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});
- function bucket(ds){if(!ds||ds.slice(0,7)!=mes)return -1;var day=+ds.slice(8,10);return day<=7?0:day<=14?1:day<=21?2:3}
- function add(k,ds,v){var b=bucket(ds);if(b>=0)auto[b][k]+=(+v||0)}
+ var mes=ind.mes||iso(new Date()).slice(0,7),periodos=periodosMes(mes),auto=periodos.map(function(){return indicadorVazio()});
+ function add(k,ds,v){var b=indicePeriodo(mes,ds);if(b>=0)auto[b][k]+=(+v||0)}
  contadores.forEach(function(c){(c.visitas||[{data:c.data}]).forEach(function(v){add("vis",v.data,1)})});
  atv.forEach(function(a){add("ativos",atvCriadoEm(a),1)});
  visitasClientes.forEach(function(c){(c.visitas||[{data:c.data}]).forEach(function(v){add("pos",v.data,1)})});
  data.forEach(function(c){if(c.st=="ganho"&&c.fechadoEm)add("clientes",c.fechadoEm,1)});
  var old=ind.autoSnapshot;
- if(old&&old.mes===mes&&old.ach)ind.ach.forEach(function(w,i){["vendas","cac","clientes","vis","ativos","pos"].forEach(function(k){w[k]=Math.max(0,(+w[k]||0)-(+old.ach[i][k]||0))})});
+ if(old&&old.mes===mes&&old.ach)ind.ach.forEach(function(w,i){["vendas","cac","clientes","vis","ativos","pos"].forEach(function(k){w[k]=Math.max(0,(+w[k]||0)-(+((old.ach[i]||{})[k])||0))})});
  ind.ach.forEach(function(w,i){["clientes","vis","ativos","pos"].forEach(function(k){w[k]=(+w[k]||0)+auto[i][k]})});
  ind.autoSnapshot={mes:mes,ach:auto};
 }
@@ -473,8 +472,32 @@ function card(c){
   (c.st=="perdido"&&c.motivo?'<div class="obs">Motivo: '+esc(c.motivo)+'</div>':"")+(c.obs?'<div class="obs">'+esc(c.obs)+'</div>':"")+hi+
   '<div class="acts">'+(at?'<button class="pri" data-feito="'+c.id+'">Contato feito</button>':"")+wa+'<button data-edit="'+c.id+'">'+(c.st=="ativo"?"Editar negociação":"Editar cliente")+'</button><button class="del" data-del="'+c.id+'">Excluir</button></div></article>'
 }
-function bucketIndicador(ds){var dia=+(ds||"").slice(8,10);return dia<=7?0:dia<=14?1:dia<=21?2:3}
-function garantirHistoricoMes(mes){if(!indHistory[mes])indHistory[mes]=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});return indHistory[mes]}
+function indicadorVazio(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}}
+function periodosMes(mes){
+ var p=mes.split("-"),ano=+p[0],m=+p[1]-1,inicio=new Date(ano,m,1),fim=new Date(ano,m+1,0),out=[];
+ for(var d=new Date(inicio);d<=fim;){var ate=new Date(d);ate.setDate(ate.getDate()+(7-(ate.getDay()||7)));if(ate>fim)ate=new Date(fim);out.push({inicio:iso(d),fim:iso(ate)});d=addDays(ate,1)}
+ return out;
+}
+function indicePeriodo(mes,ds){if(!ds||ds.slice(0,7)!==mes)return -1;var p=periodosMes(mes);for(var i=0;i<p.length;i++)if(ds>=p[i].inicio&&ds<=p[i].fim)return i;return -1}
+function redistribuirPeriodosAntigos(mes,arr){
+ var p=periodosMes(mes),novo=p.map(function(){return indicadorVazio()});
+ if(!Array.isArray(arr))return novo;
+ var chaves=["vendas","clientes","cac","vis","ativos","pos"],ultimo=new Date(+mes.slice(0,4),+mes.slice(5,7),0).getDate();
+ arr.forEach(function(w,oldIndex){
+  var ini=oldIndex===0?1:oldIndex===1?8:oldIndex===2?15:22,fim=oldIndex===0?7:oldIndex===1?14:oldIndex===2?21:ultimo,totalDias=Math.max(1,fim-ini+1),sobreposicoes=[];
+  p.forEach(function(q,i){var a=Math.max(ini,+q.inicio.slice(8,10)),b=Math.min(fim,+q.fim.slice(8,10));if(b>=a)sobreposicoes.push({i:i,dias:b-a+1})});
+  chaves.forEach(function(k){var v=+w[k]||0;sobreposicoes.forEach(function(o){novo[o.i][k]+=v*o.dias/totalDias})});
+ });
+ return novo;
+}
+function normalizarPeriodosIndicadores(){
+ var modelo="segunda-domingo-mes-v1",mes=ind&&ind.mes;
+ if(mes&&ind.ach&&ind.periodModel!==modelo){ind.ach=redistribuirPeriodosAntigos(mes,ind.ach);if(ind.autoSnapshot&&ind.autoSnapshot.mes===mes)ind.autoSnapshot.ach=redistribuirPeriodosAntigos(mes,ind.autoSnapshot.ach);ind.periodModel=modelo}
+ Object.keys(indHistory||{}).forEach(function(m){var cfg=indConfigHistory[m]||{};if(cfg.periodModel!==modelo){indHistory[m]=redistribuirPeriodosAntigos(m,indHistory[m]);cfg.periodModel=modelo;indConfigHistory[m]=cfg}});
+ if(mes)ind.sem=Math.max(0,indicePeriodo(mes,iso(new Date())));
+}
+function bucketIndicador(ds){return indicePeriodo((ds||"").slice(0,7),ds)}
+function garantirHistoricoMes(mes){if(!indHistory[mes])indHistory[mes]=periodosMes(mes).map(function(){return indicadorVazio()});return indHistory[mes]}
 function somarIndicadorFinanceiro(mes,ds,vendas,cac){if(!mes||!ds)return;var b=bucketIndicador(ds),alvo=ind&&ind.mes===mes?ind.ach:garantirHistoricoMes(mes);alvo[b].vendas=(+alvo[b].vendas||0)+(+vendas||0);alvo[b].cac=(+alvo[b].cac||0)+(+cac||0)}
 function aplicarFechamentoIndicadores(c,ds){if(c.indicadorAplicado)return;ds=ds||c.fechadoEm||iso(new Date());somarIndicadorFinanceiro(ds.slice(0,7),ds,total(c),+c.impl||0);c.indicadorAplicado=true;var existente=visitasClientes.filter(function(v){return v.origemPipelineId==c.id||((v.cliente||"").trim().toLowerCase()===(c.nome||"").trim().toLowerCase()&&(!v.tel||!c.tel||v.tel.replace(/\\D/g,"")==c.tel.replace(/\\D/g,"")))} )[0];if(existente){existente.origemPipelineId=c.id;existente.nome=existente.nome||c.resp||"";existente.tel=existente.tel||c.tel||"";existente.rua=existente.rua||c.end||"";existente.link=existente.link||c.link||"";existente.visitas=existente.visitas||[];existente.vendas=existente.vendas||[]}else visitasClientes.push({id:"pipeline-"+c.id,origemPipelineId:c.id,cliente:c.nome,nome:c.resp||"",tel:c.tel||"",rua:c.end||"",bairro:"",cidade:"",link:c.link||"",data:ds,visitas:[],vendas:[]})}
 function indicadorMes(mes,chave){var a=ind&&ind.mes===mes?ind.ach:indHistory[mes];if(!a)return null;var k=chave=="importacao"?"cac":chave;return a.reduce(function(n,w){return n+(+w[k]||0)},0)}
@@ -555,11 +578,11 @@ document.addEventListener("click",function(e){
 });
 var IK=["vendas","clientes","cac","vis","ativos","pos"],IN={vendas:"Valor de vendas",clientes:"Qnt. clientes",cac:"Valor de implantação",vis:"Vis. contadores",ativos:"Ativos",pos:"Visitas a clientes / pós-venda"},IM={vendas:1,cac:1};
 function fixInd(){if(ind&&!ind.v){ind.v=2;if(ind.plus&&ind.plus[0]&&ind.plus[1]&&!ind.plus[0].valor&&!ind.plus[1].valor){ind.plus[0].valor=200;ind.plus[1].valor=300}}}
-function IND0(){var mes=iso(new Date()).slice(0,7);return {v:2,mes:mes,sem:Math.min(3,Math.floor((new Date().getDate()-1)/7)),min:4,obj:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},peso:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},ach:[{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}],plus:[]}}
-function snapshotIndConfig(mes){if(!mes||!ind)return;if(!indConfigHistory[mes])indConfigHistory[mes]={obj:Object.assign({},ind.obj),peso:Object.assign({},ind.peso),plus:(ind.plus||[]).map(function(p){return {meta:+p.meta||0,valor:+p.valor||0}}),min:+ind.min||4}}
-function ensureIndMonth(){var mes=iso(new Date()).slice(0,7);if(!ind||!ind.ach)return;if(ind.mes!==mes){if(ind.mes){indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});snapshotIndConfig(ind.mes)}ind.mes=mes;ind.sem=Math.min(3,Math.floor((new Date().getDate()-1)/7));ind.ach=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});delete ind.autoSnapshot;save();}}
+function IND0(){var mes=iso(new Date()).slice(0,7);return {v:3,periodModel:"segunda-domingo-mes-v1",mes:mes,sem:Math.max(0,indicePeriodo(mes,iso(new Date()))),min:4,obj:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},peso:{vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0},ach:periodosMes(mes).map(function(){return indicadorVazio()}),plus:[]}}
+function snapshotIndConfig(mes){if(!mes||!ind)return;if(!indConfigHistory[mes])indConfigHistory[mes]={obj:Object.assign({},ind.obj),peso:Object.assign({},ind.peso),plus:(ind.plus||[]).map(function(p){return {meta:+p.meta||0,valor:+p.valor||0}}),min:+ind.min||4,periodModel:"segunda-domingo-mes-v1"}}
+function ensureIndMonth(){var mes=iso(new Date()).slice(0,7);if(!ind||!ind.ach)return;if(ind.mes!==mes){if(ind.mes){indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});snapshotIndConfig(ind.mes);if(indConfigHistory[ind.mes])indConfigHistory[ind.mes].periodModel="segunda-domingo-mes-v1"}ind.mes=mes;ind.sem=Math.max(0,indicePeriodo(mes,iso(new Date())));ind.periodModel="segunda-domingo-mes-v1";ind.ach=periodosMes(mes).map(function(){return indicadorVazio()});delete ind.autoSnapshot;save();}}
 function iv(k){return ind.ach.reduce(function(a,w){return a+(+w[k]||0)},0)}
-function wobj(k,w){var d=0;for(var i=0;i<w;i++)d+=+ind.ach[i][k]||0;return Math.max(0,ind.obj[k]-d)/(4-w)}
+function wobj(k,w){var d=0;for(var i=0;i<w;i++)d+=+ind.ach[i][k]||0;var restantes=Math.max(1,ind.ach.length-w);return Math.max(0,(+ind.obj[k]||0)-d)/restantes}
 function fmI(k,v){return IM[k]?brl.format(v):(Math.round(v*10)/10).toLocaleString("pt-BR")}
 function calcInd(){var hit=0,pago=0,vv=iv("vendas"),pl=0;
   IK.forEach(function(k){if(iv(k)>=ind.obj[k])hit++});
@@ -567,14 +590,14 @@ function calcInd(){var hit=0,pago=0,vv=iv("vendas"),pl=0;
   ind.plus.forEach(function(t){if(hit>=ind.min&&t.meta>0&&vv>=t.meta)pl+=+t.valor||0});
   return {hit:hit,ind:pago,plus:pl}}
 function renderInd(){
-  var c=calcInd(),w=ind.sem,mes=parse(ind.mes+"-01").toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
-  $("meta").innerHTML='<b>Indicadores de '+mes+'</b> · semana '+(w+1)+' de 4<div class="ind">'+IK.map(function(k){
+  var c=calcInd(),w=Math.max(0,Math.min(ind.sem,ind.ach.length-1)),periodos=periodosMes(ind.mes),mes=parse(ind.mes+"-01").toLocaleDateString("pt-BR",{month:"long",year:"numeric"}),periodo=periodos[w];
+  $("meta").innerHTML='<b>Indicadores de '+mes+'</b> · período '+(w+1)+' de '+periodos.length+' ('+parse(periodo.inicio).toLocaleDateString("pt-BR")+' a '+parse(periodo.fim).toLocaleDateString("pt-BR")+')<div class="ind">'+IK.map(function(k){
     var a=iv(k),o=ind.obj[k],p=o>0?a/o*100:0,wo=wobj(k,w),wa=+ind.ach[w][k]||0;
-    return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Semana: '+fmI(k,wa)+' de '+fmI(k,wo)+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
+    return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Período: '+fmI(k,wa)+' de '+fmI(k,wo)+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
     '<div class="pay num">Batidos: <b>'+c.hit+'/6</b> (mínimo '+ind.min+') · Indicadores '+brl.format(c.ind)+' · Plus '+brl.format(c.plus)+'<br><b>Total a receber: '+brl.format(c.ind+c.plus)+'</b></div><button class="pri" id="bi">Atualizar semana</button>'}
 function openInd(){
-  var W4=[0,1,2,3],h='<label>Semana atual<select id="isem">'+W4.map(function(i){return '<option value="'+i+'"'+(i==ind.sem?' selected':'')+'>Semana '+(i+1)+'</option>'}).join("")+'</select></label>';
-  h+='<b>Alcançado por semana</b><div class="ig"><b></b><b>S1</b><b>S2</b><b>S3</b><b>S4</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span>'+W4.map(function(i){return '<input type="number" inputmode="decimal" step="any" min="0" data-w="'+i+'" data-k="'+k+'" value="'+(ind.ach[i][k]||0)+'">'}).join("")}).join("")+'</div>';
+  var W4=ind.ach.map(function(_,i){return i}),periodos=periodosMes(ind.mes),h='<label>Período atual<select id="isem">'+W4.map(function(i){return '<option value="'+i+'"'+(i==ind.sem?' selected':'')+'>Período '+(i+1)+' · '+parse(periodos[i].inicio).toLocaleDateString("pt-BR")+' a '+parse(periodos[i].fim).toLocaleDateString("pt-BR")+'</option>'}).join("")+'</select></label>';
+  h+='<b>Alcançado e meta recalculada por período</b><div class="ig" style="grid-template-columns:1.5fr repeat('+W4.length+',minmax(62px,1fr))"><b></b>'+W4.map(function(i){return '<b>P'+(i+1)+'</b>'}).join("")+IK.map(function(k){var acumulado=0;return '<span>'+IN[k]+'</span>'+W4.map(function(i){var esperado=Math.max(0,(+ind.obj[k]||0)-acumulado)/(W4.length-i),realizado=+ind.ach[i][k]||0;acumulado+=realizado;return '<div><input type="number" inputmode="decimal" step="any" min="0" data-w="'+i+'" data-k="'+k+'" value="'+realizado+'"><small style="display:block;color:var(--mute);font-size:10px">Meta '+fmI(k,esperado)+'</small></div>'}).join("")}).join("")+'</div>';
   h+='<b>Metas e pesos do mês</b><div class="ig2"><b></b><b>Objetivo</b><b>Peso (R$)</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span><input type="number" inputmode="decimal" step="any" min="0" data-o="'+k+'" value="'+ind.obj[k]+'"><input type="number" inputmode="decimal" step="any" min="0" data-p="'+k+'" value="'+ind.peso[k]+'">'}).join("")+'</div>';
   h+='<b>Plus (vendas)</b><div class="ig2"><b></b><b>A partir de (R$)</b><b>Adicional (R$)</b>'+ind.plus.map(function(t,i){return '<span>Faixa '+(i+1)+'</span><input type="number" inputmode="decimal" min="0" data-pm="'+i+'" value="'+t.meta+'"><input type="number" inputmode="decimal" min="0" data-pv="'+i+'" value="'+t.valor+'">'}).join("")+'</div>';
   h+='<label>Mínimo de indicadores batidos para receber<input type="number" id="imin" min="1" max="6" value="'+ind.min+'"></label>';
@@ -587,11 +610,11 @@ $("s5").onclick=function(){
   Q("input[data-p]",function(e){ind.peso[e.dataset.p]=+e.value||0});
   Q("input[data-pm]",function(e){ind.plus[+e.dataset.pm].meta=+e.value||0});
   Q("input[data-pv]",function(e){ind.plus[+e.dataset.pv].valor=+e.value||0});
-  ind.sem=+$("isem").value;ind.min=+$("imin").value||4;save();$("dlg5").close();render()};
+  ind.sem=+$("isem").value;ind.min=+$("imin").value||4;ind.periodModel="segunda-domingo-mes-v1";save();$("dlg5").close();render()};
 $("nm").onclick=function(){
   if($("nm").textContent=="Iniciar novo mês"){$("nm").textContent="Toque de novo para zerar as 4 semanas";return}
-  snapshotIndConfig(ind.mes);indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});var d=parse(ind.mes+"-01");d.setMonth(d.getMonth()+1);ind.mes=iso(d).slice(0,7);ind.sem=0;
-  ind.ach=[0,1,2,3].map(function(){return {vendas:0,clientes:0,cac:0,vis:0,ativos:0,pos:0}});
+  snapshotIndConfig(ind.mes);indConfigHistory[ind.mes].periodModel="segunda-domingo-mes-v1";indHistory[ind.mes]=ind.ach.map(function(w){return Object.assign({},w)});var d=parse(ind.mes+"-01");d.setMonth(d.getMonth()+1);ind.mes=iso(d).slice(0,7);ind.sem=0;ind.periodModel="segunda-domingo-mes-v1";
+  ind.ach=periodosMes(ind.mes).map(function(){return indicadorVazio()});
   save();render();openInd()};
 var selA={},qa="",ordI={alta:0,media:1,baixa:2},gps={lat:null,lng:null,acc:null},edA=null,convQ=[],convFrom=null,convOk=false;
 function mapUrl(a){if(a.link&&/^https?:\/\//.test(a.link))return a.link;if(a.lat!=null&&a.lng!=null)return "https://www.google.com/maps?q="+a.lat+","+a.lng;if(a.end)return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a.end+" "+a.loja);return ""}
