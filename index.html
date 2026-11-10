@@ -606,16 +606,16 @@ function renderInd(){
     return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Período: '+fmI(k,wa)+' de '+fmI(k,wo)+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
     '<div class="pay num">Batidos: <b>'+c.hit+'/6</b> (mínimo '+ind.min+') · Indicadores '+brl.format(c.ind)+' · Plus '+brl.format(c.plus)+'<br><b>Total a receber: '+brl.format(c.ind+c.plus)+'</b></div><button class="pri" id="bi">Atualizar semana</button>'}
 function openInd(){
-  var atual=Math.max(0,Math.min(indicePeriodo(ind.mes,iso(new Date())),ind.ach.length-1)),h='<b>Indicadores da semana atual</b><p class="sub">Os lançamentos de vendas e implantações feitos no aplicativo são contabilizados automaticamente. Se precisar, ajuste os valores desta semana aqui.</p><div class="ig2"><b>Indicador</b><b>Realizado na semana</b><b>Meta da semana</b>';
-  ["vendas","cac"].forEach(function(k){h+='<span>'+IN[k]+'</span><input type="number" inputmode="decimal" step="any" min="0" data-current="'+k+'" value="'+(+ind.ach[atual][k]||0)+'"><span>'+fmI(k,wobj(k,atual))+'</span>'});
-  h+='</div><b>Metas e pesos do mês</b><div class="ig2"><b></b><b>Objetivo</b><b>Peso (R$)</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span><input type="number" inputmode="decimal" step="any" min="0" data-o="'+k+'" value="'+ind.obj[k]+'"><input type="number" inputmode="decimal" step="any" min="0" data-p="'+k+'" value="'+ind.peso[k]+'">'}).join("")+'</div>';
+  var periodos=periodosMes(ind.mes),h='<b>Indicadores do mês</b><div style="overflow-x:auto"><div class="ig" style="grid-template-columns:1.6fr repeat('+periodos.length+',minmax(58px,1fr));min-width:'+Math.max(440,160+periodos.length*66)+'px"><b>Objetivo mensal</b>'+periodos.map(function(p,i){return '<b>S'+(i+1)+'</b>'}).join("");
+  IK.forEach(function(k){h+='<span>'+IN[k]+'<small style="display:block;color:var(--mute)">'+fmI(k,+ind.obj[k]||0)+'</small></span>'+periodos.map(function(p,i){return '<input type="number" inputmode="decimal" step="any" min="0" data-week="'+k+'" data-period="'+i+'" value="'+(+ind.ach[i][k]||0)+'" aria-label="'+IN[k]+' realizado na semana '+(i+1)+'">' }).join("")});
+  h+='</div></div><b>Metas e pesos do mês</b><div class="ig2"><b></b><b>Objetivo</b><b>Peso (R$)</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span><input type="number" inputmode="decimal" step="any" min="0" data-o="'+k+'" value="'+ind.obj[k]+'"><input type="number" inputmode="decimal" step="any" min="0" data-p="'+k+'" value="'+ind.peso[k]+'">'}).join("")+'</div>';
   h+='<b>Plus (vendas)</b><div class="ig2"><b></b><b>A partir de (R$)</b><b>Adicional (R$)</b>'+ind.plus.map(function(t,i){return '<span>Faixa '+(i+1)+'</span><input type="number" inputmode="decimal" min="0" data-pm="'+i+'" value="'+t.meta+'"><input type="number" inputmode="decimal" min="0" data-pv="'+i+'" value="'+t.valor+'">'}).join("")+'</div>';
   h+='<label>Mínimo de indicadores batidos para receber<input type="number" id="imin" min="1" max="6" value="'+ind.min+'"></label>';
   $("ib").innerHTML=h;$("nm").textContent="Iniciar novo mês";$("dlg5").showModal()}
 function Q(sel,fn){Array.prototype.forEach.call($("ib").querySelectorAll(sel),fn)}
 $("c5").onclick=function(){$("dlg5").close()};$("dlg5").addEventListener("close",function(){render()});
 $("s5").onclick=function(){
-  var semanaAtual=Math.max(0,Math.min(indicePeriodo(ind.mes,iso(new Date())),ind.ach.length-1));Q("input[data-current]",function(e){ind.ach[semanaAtual][e.dataset.current]=+e.value||0});ind.sem=semanaAtual;
+  Q("input[data-week]",function(e){var periodo=+e.dataset.period;if(ind.ach[periodo])ind.ach[periodo][e.dataset.week]=+e.value||0});ind.sem=Math.max(0,Math.min(indicePeriodo(ind.mes,iso(new Date())),ind.ach.length-1));
   Q("input[data-o]",function(e){ind.obj[e.dataset.o]=+e.value||0});
   Q("input[data-p]",function(e){ind.peso[e.dataset.p]=+e.value||0});
   Q("input[data-pm]",function(e){ind.plus[+e.dataset.pm].meta=+e.value||0});
