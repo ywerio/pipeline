@@ -1001,7 +1001,7 @@ $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade")
 var pipelineStarted=false;
 window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
 window.__pipelineResetState=function(){data=[];companyDataRevision="";meta={meta:0};ind=IND0();indHistory={};atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
-if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js?v=35").then(function(reg){return reg.update()}).catch(function(){});
+if("serviceWorker" in navigator){navigator.serviceWorker.addEventListener("controllerchange",function(){if(!window.__pipelineSwReloaded){window.__pipelineSwReloaded=true;window.location.reload()}});navigator.serviceWorker.register("sw.js?v=35").then(function(reg){return reg.update()}).catch(function(){});}
 </script>
 
 <script type="module">
