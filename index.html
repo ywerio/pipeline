@@ -302,12 +302,13 @@ function load(){
   try{var r=localStorage.getItem(KEY);if(r)data=JSON.parse(r).map(norm);var m=localStorage.getItem(KEY+"m");if(m)meta=JSON.parse(m);var iv0=localStorage.getItem(KEY+"i");if(iv0)ind=JSON.parse(iv0);var av0=localStorage.getItem(KEY+"a");if(av0)atv=JSON.parse(av0);var cv0=localStorage.getItem(KEY+"c");if(cv0)contadores=JSON.parse(cv0);var vc0=localStorage.getItem(KEY+"vc");if(vc0)visitasClientes=JSON.parse(vc0);var ih0=localStorage.getItem(KEY+"ih");if(ih0)indHistory=JSON.parse(ih0);var ic0=localStorage.getItem(KEY+"ic");if(ic0)indConfigHistory=JSON.parse(ic0);var ev0=localStorage.getItem(KEY+"e");if(ev0)evo=JSON.parse(ev0);var cm0=localStorage.getItem(KEY+"com");if(cm0)comissoes=JSON.parse(cm0)}catch(e){}
   if(!ind)ind=IND0();fixInd();normalizarPeriodosIndicadores();autoIndicadores();ensureIndMonth();
 }
-function garantirLancamentosManuais(mes,periodos){
+function garantirLancamentosManuais(mes,periodos,autoAtual){
  if(!Array.isArray(ind.ach))ind.ach=[];
  periodos.forEach(function(p,i){if(!ind.ach[i]||typeof ind.ach[i]!=="object")ind.ach[i]=indicadorVazio()});
- var snap=ind.manualSnapshot,anterior=ind.autoSnapshot&&ind.autoSnapshot.mes===mes?ind.autoSnapshot.ach:[];
- if(!snap||snap.mes!==mes||!Array.isArray(snap.ach)){
+ var snap=ind.manualSnapshot,anterior=ind.autoSnapshot&&ind.autoSnapshot.mes===mes?ind.autoSnapshot.ach:(autoAtual||[]);
+ if(ind.manualSnapshotVersion!==2||!snap||snap.mes!==mes||!Array.isArray(snap.ach)){
   ind.manualSnapshot={mes:mes,ach:periodos.map(function(p,i){var w=ind.ach[i]||indicadorVazio(),a=anterior[i]||{},m=indicadorVazio();IK.forEach(function(k){m[k]=Math.max(0,(+w[k]||0)-(+a[k]||0))});return m})};
+  ind.manualSnapshotVersion=2;
  }else{
   periodos.forEach(function(p,i){if(!ind.manualSnapshot.ach[i])ind.manualSnapshot.ach[i]=indicadorVazio();IK.forEach(function(k){if(ind.manualSnapshot.ach[i][k]==null)ind.manualSnapshot.ach[i][k]=0})});
  }
@@ -315,12 +316,12 @@ function garantirLancamentosManuais(mes,periodos){
 function autoIndicadores(){
  if(!ind||!ind.ach)return;
  var mes=ind.mes||iso(new Date()).slice(0,7),periodos=periodosMes(mes),auto=periodos.map(function(){return indicadorVazio()});
- garantirLancamentosManuais(mes,periodos);
  function add(k,ds,v){var b=indicePeriodo(mes,ds);if(b>=0)auto[b][k]+=(+v||0)}
  contadores.forEach(function(c){(c.visitas||[{data:c.data}]).forEach(function(v){add("vis",v.data,1)})});
  atv.forEach(function(a){add("ativos",atvCriadoEm(a),1)});
  visitasClientes.forEach(function(c){(c.visitas||[{data:c.data}]).forEach(function(v){add("pos",v.data,1)})});
  data.forEach(function(c){if(c.st=="ganho"&&c.fechadoEm)add("clientes",c.fechadoEm,1)});
+ garantirLancamentosManuais(mes,periodos,auto);
  ind.autoSnapshot={mes:mes,ach:auto};
  ind.ach=periodos.map(function(p,i){var w=indicadorVazio(),manual=ind.manualSnapshot.ach[i]||{},automatico=auto[i]||{};IK.forEach(function(k){w[k]=(+manual[k]||0)+(+automatico[k]||0)});return w});
 }
@@ -621,7 +622,7 @@ function openInd(){
   ind.plus=ind.plus.map(function(t){return t&&typeof t==="object"?{meta:+t.meta||0,valor:+t.valor||0}:{meta:0,valor:0}});
   IK.forEach(function(k){if(ind.obj[k]==null)ind.obj[k]=0;if(ind.peso[k]==null)ind.peso[k]=0});
   var h='<b>Indicadores do mês</b><div style="overflow-x:auto"><div class="ig" style="grid-template-columns:1.6fr repeat('+periodos.length+',minmax(58px,1fr));min-width:'+Math.max(440,160+periodos.length*66)+'px"><b>Objetivo mensal</b>'+periodos.map(function(p,i){return '<b>S'+(i+1)+'</b>'}).join("");
-  IK.forEach(function(k){h+='<span>'+IN[k]+'<small style="display:block;color:var(--mute)">'+fmI(k,+ind.obj[k]||0)+'</small></span>'+periodos.map(function(p,i){return '<input type="number" inputmode="decimal" step="any" min="0" data-week="'+k+'" data-period="'+i+'" value="'+(+ind.manualSnapshot.ach[i][k]||0)+'" aria-label="'+IN[k]+' lançamento manual na semana '+(i+1)+'">' }).join("")});
+  IK.forEach(function(k){h+='<span>'+IN[k]+'<small style="display:block;color:var(--mute)">'+fmI(k,+ind.obj[k]||0)+'</small></span>'+periodos.map(function(p,i){return '<input type="number" inputmode="decimal" step="any" min="0" data-week="'+k+'" data-period="'+i+'" value="'+(+ind.ach[i][k]||0)+'" aria-label="'+IN[k]+' total realizado na semana '+(i+1)+'">' }).join("")});
   h+='</div></div><b>Metas e pesos do mês</b><div class="ig2"><b></b><b>Objetivo</b><b>Peso (R$)</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span><input type="number" inputmode="decimal" step="any" min="0" data-o="'+k+'" value="'+ind.obj[k]+'"><input type="number" inputmode="decimal" step="any" min="0" data-p="'+k+'" value="'+ind.peso[k]+'">'}).join("")+'</div>';
   h+='<b>Plus (vendas)</b><div class="ig2"><b></b><b>A partir de (R$)</b><b>Adicional (R$)</b>'+ind.plus.map(function(t,i){return '<span>Faixa '+(i+1)+'</span><input type="number" inputmode="decimal" min="0" data-pm="'+i+'" value="'+t.meta+'"><input type="number" inputmode="decimal" min="0" data-pv="'+i+'" value="'+t.valor+'">'}).join("")+'</div>';
   h+='<label>Mínimo de indicadores batidos para receber<input type="number" id="imin" min="1" max="6" value="'+ind.min+'"></label>';
@@ -629,7 +630,7 @@ function openInd(){
 function Q(sel,fn){Array.prototype.forEach.call($("ib").querySelectorAll(sel),fn)}
 $("c5").onclick=function(){$("dlg5").close()};$("dlg5").addEventListener("close",function(){render()});
 $("s5").onclick=function(){
-  Q("input[data-week]",function(e){var periodo=+e.dataset.period;if(ind.manualSnapshot&&ind.manualSnapshot.ach[periodo])ind.manualSnapshot.ach[periodo][e.dataset.week]=+e.value||0});ind.sem=Math.max(0,Math.min(indicePeriodo(ind.mes,iso(new Date())),ind.ach.length-1));
+  Q("input[data-week]",function(e){var periodo=+e.dataset.period,k=e.dataset.week;if(ind.manualSnapshot&&ind.manualSnapshot.ach[periodo]){var automatico=ind.autoSnapshot&&ind.autoSnapshot.mes===ind.mes&&ind.autoSnapshot.ach[periodo]?+ind.autoSnapshot.ach[periodo][k]||0:0;ind.manualSnapshot.ach[periodo][k]=Math.max(0,(+e.value||0)-automatico)}});ind.sem=Math.max(0,Math.min(indicePeriodo(ind.mes,iso(new Date())),ind.ach.length-1));
   Q("input[data-o]",function(e){ind.obj[e.dataset.o]=+e.value||0});
   Q("input[data-p]",function(e){ind.peso[e.dataset.p]=+e.value||0});
   Q("input[data-pm]",function(e){ind.plus[+e.dataset.pm].meta=+e.value||0});
