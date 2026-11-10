@@ -560,7 +560,6 @@ document.addEventListener("click",function(e){
   else if(id=t.getAttribute("data-del")){if(confirm("Excluir este cliente?")){data=data.filter(function(c){return c.id!=id});save();render()}}
   else if(id=t.getAttribute("data-det")){detId=id;$("dd").value=iso(new Date());$("dx").value="";$("dt").value="contato";det();$("dlg4").showModal()}
   else if(id=t.getAttribute("data-hd")){var cc=data.filter(function(x){return x.id==detId})[0];if(cc){cc.hist.splice(+id,1);save();det();render()}}
-  else if(t.id=="bi")openInd();
   else if(id=t.getAttribute("data-ares"))pickRes(+id);
   else if(t.getAttribute("data-tab")){view=t.getAttribute("data-tab");closeMenu();render()}
    else if(t.id=="voltarAtv"){view="atv";render()}
@@ -604,19 +603,20 @@ function renderInd(){
   $("meta").innerHTML='<b>Indicadores de '+mes+'</b> · período '+(w+1)+' de '+periodos.length+' ('+parse(periodo.inicio).toLocaleDateString("pt-BR")+' a '+parse(periodo.fim).toLocaleDateString("pt-BR")+')<div class="ind">'+IK.map(function(k){
     var a=iv(k),o=ind.obj[k],p=o>0?a/o*100:0,wo=wobj(k,w),wa=realizadoIndicadorPeriodo(k,w);
     return '<div class="ir"><div class="in"><span>'+IN[k]+'</span><span class="num">'+Math.round(p)+'%</span></div><div class="bar"><i style="width:'+Math.min(100,p)+'%"></i></div><small class="num">Mês: '+fmI(k,a)+' de '+fmI(k,o)+' · Período: '+fmI(k,wa)+' de '+fmI(k,wo)+(p>=100?' · batido':'')+'</small></div>'}).join("")+'</div>'+
-    '<div class="pay num">Batidos: <b>'+c.hit+'/6</b> (mínimo '+ind.min+') · Indicadores '+brl.format(c.ind)+' · Plus '+brl.format(c.plus)+'<br><b>Total a receber: '+brl.format(c.ind+c.plus)+'</b></div><button class="pri" id="bi">Atualizar semana</button>'}
+    '<div class="pay num">Batidos: <b>'+c.hit+'/6</b> (mínimo '+ind.min+') · Indicadores '+brl.format(c.ind)+' · Plus '+brl.format(c.plus)+'<br><b>Total a receber: '+brl.format(c.ind+c.plus)+'</b></div><button type="button" class="pri" id="bi">Atualizar semana</button>'};$("bi").addEventListener("click",function(e){e.preventDefault();try{openInd()}catch(err){console.error("Falha ao abrir indicadores",err);alert("Não foi possível abrir a atualização dos indicadores: "+(err&&err.message?err.message:"erro inesperado"))}})
 function openInd(){
   var periodos=periodosMes(ind.mes);
   if(!Array.isArray(ind.ach))ind.ach=[];
-  periodos.forEach(function(p,i){if(!ind.ach[i])ind.ach[i]=indicadorVazio()});
-  if(!ind.obj)ind.obj={};if(!ind.peso)ind.peso={};if(!Array.isArray(ind.plus))ind.plus=[];
+  periodos.forEach(function(p,i){if(!ind.ach[i]||typeof ind.ach[i]!=="object")ind.ach[i]=indicadorVazio()});
+  if(!ind.obj||typeof ind.obj!=="object")ind.obj={};if(!ind.peso||typeof ind.peso!=="object")ind.peso={};if(!Array.isArray(ind.plus))ind.plus=[];
+  ind.plus=ind.plus.map(function(t){return t&&typeof t==="object"?{meta:+t.meta||0,valor:+t.valor||0}:{meta:0,valor:0}});
   IK.forEach(function(k){if(ind.obj[k]==null)ind.obj[k]=0;if(ind.peso[k]==null)ind.peso[k]=0});
   var h='<b>Indicadores do mês</b><div style="overflow-x:auto"><div class="ig" style="grid-template-columns:1.6fr repeat('+periodos.length+',minmax(58px,1fr));min-width:'+Math.max(440,160+periodos.length*66)+'px"><b>Objetivo mensal</b>'+periodos.map(function(p,i){return '<b>S'+(i+1)+'</b>'}).join("");
   IK.forEach(function(k){h+='<span>'+IN[k]+'<small style="display:block;color:var(--mute)">'+fmI(k,+ind.obj[k]||0)+'</small></span>'+periodos.map(function(p,i){return '<input type="number" inputmode="decimal" step="any" min="0" data-week="'+k+'" data-period="'+i+'" value="'+(+ind.ach[i][k]||0)+'" aria-label="'+IN[k]+' realizado na semana '+(i+1)+'">' }).join("")});
   h+='</div></div><b>Metas e pesos do mês</b><div class="ig2"><b></b><b>Objetivo</b><b>Peso (R$)</b>'+IK.map(function(k){return '<span>'+IN[k]+'</span><input type="number" inputmode="decimal" step="any" min="0" data-o="'+k+'" value="'+ind.obj[k]+'"><input type="number" inputmode="decimal" step="any" min="0" data-p="'+k+'" value="'+ind.peso[k]+'">'}).join("")+'</div>';
   h+='<b>Plus (vendas)</b><div class="ig2"><b></b><b>A partir de (R$)</b><b>Adicional (R$)</b>'+ind.plus.map(function(t,i){return '<span>Faixa '+(i+1)+'</span><input type="number" inputmode="decimal" min="0" data-pm="'+i+'" value="'+t.meta+'"><input type="number" inputmode="decimal" min="0" data-pv="'+i+'" value="'+t.valor+'">'}).join("")+'</div>';
   h+='<label>Mínimo de indicadores batidos para receber<input type="number" id="imin" min="1" max="6" value="'+ind.min+'"></label>';
-  $("ib").innerHTML=h;$("nm").textContent="Iniciar novo mês";$("dlg5").showModal()}
+  $("ib").innerHTML=h;$("nm").textContent="Iniciar novo mês";var dlg=$("dlg5");if(typeof dlg.showModal==="function")dlg.showModal();else dlg.setAttribute("open","")}
 function Q(sel,fn){Array.prototype.forEach.call($("ib").querySelectorAll(sel),fn)}
 $("c5").onclick=function(){$("dlg5").close()};$("dlg5").addEventListener("close",function(){render()});
 $("s5").onclick=function(){
