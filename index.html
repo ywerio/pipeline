@@ -1020,7 +1020,7 @@ import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/fireb
 const firebaseConfig={apiKey:"AIzaSyA7TbtmQw2dEBa1V9iNXgdhdSkYSCyMU5M",authDomain:"pipeline-softcom.firebaseapp.com",projectId:"pipeline-softcom",storageBucket:"pipeline-softcom.firebasestorage.app",messagingSenderId:"118247569716",appId:"1:118247569716:web:913b112c90ac3a67f5cd61"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();
 const login=document.getElementById("firebaseLogin"),googleLogin=document.getElementById("googleLogin"),logout=document.getElementById("firebaseLogout"),status=document.getElementById("firebaseStatus"),loginStatus=document.getElementById("loginStatus");
-let cloudRef=null,cloudReady=false,saving=false,activating=false;
+let cloudRef=null,cloudReady=false,saving=false,cloudSavePending=false,activating=false;
 function show(t){if(status)status.textContent=t;if(loginStatus)loginStatus.textContent=t;if(window.stat)window.stat(t)}
 function revealApp(){document.body.classList.remove("auth-locked")}
 function lockApp(){document.body.classList.add("auth-locked")}
@@ -1052,7 +1052,7 @@ async function activate(user){
   }
   localStorage.setItem("pipeline_owner_uid",user.uid);
   cloudReady=true;
-  window.__pipelineCloudSave=async function(){if(!cloudReady||!cloudRef||saving)return;saving=true;try{await setDoc(cloudRef,{json:JSON.stringify(window.__pipelineGetState()),updatedAt:new Date().toISOString()});show("Sincronizado na nuvem.")}finally{saving=false}};
+  window.__pipelineCloudSave=async function(){if(!cloudReady||!cloudRef)return;cloudSavePending=true;if(saving)return;saving=true;try{while(cloudSavePending&&cloudReady&&cloudRef){cloudSavePending=false;const payload=JSON.stringify(window.__pipelineGetState());await setDoc(cloudRef,{json:payload,updatedAt:new Date().toISOString()});}show("Sincronizado na nuvem.")}finally{saving=false;if(cloudSavePending&&cloudReady&&cloudRef)window.__pipelineCloudSave()}};
   const companyRevision="2026-10-31-oficial-v1";
   if(window.__pipelineGetState().companyDataRevision!==companyRevision){
    try{
