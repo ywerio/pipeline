@@ -275,8 +275,9 @@ body:not(.auth-locked) #loginScreen{display:none!important}
 
 <dialog id="dlg8"><form onsubmit="return false"><h2 id="vctitle">Registrar visita a cliente</h2><label>Nome do cliente / estabelecimento<input id="vccliente" maxlength="100" required placeholder="Nome do cliente"></label><label>Nome do contato<input id="vcnome" maxlength="80" placeholder="Nome do responsável"></label><label>Telefone / WhatsApp<input id="vctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="vcrua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="vcbairro" maxlength="80"></label><label>Cidade<input id="vccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="vclink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="vccancel">Cancelar</button><button type="button" class="pri" id="vcsave">Salvar visita</button></div></form></dialog>
 <dialog id="dlg9"><form onsubmit="return false"><h2 id="saleTitle">Registrar venda ao cliente</h2><label>Tipo de venda<select id="saleType"><option value="migracao">Migração Desktop → Web</option><option value="upgrade">Upgrade / serviço adicional</option></select></label><label>Serviço vendido<input id="saleService" maxlength="100" required placeholder="Ex.: Migração Desktop para Web, Venda Mais, Drica IA"></label><label id="saleValueLabel">Valor pago no ato (R$)<input id="saleValue" type="number" inputmode="decimal" min="0" step="0.01" value="300" required></label><div class="g2"><label>Data da contratação<input id="saleDate" type="date" required></label><label id="salePaidWrap" hidden>Data do pagamento da 1ª mensalidade<input id="salePaid" type="date"></label></div><div class="preview" id="saleCommissionPreview">Comissão de migração: 6% do valor pago, prevista para o mês seguinte.</div><div class="fa"><button type="button" id="saleCancel">Cancelar</button><button type="button" class="pri" id="saleSave">Registrar venda</button></div></form></dialog>
-<dialog id="dlgExport"><form onsubmit="return false"><h2>Central de exportação</h2><p class="sub">Escolha o tipo de arquivo que deseja gerar.</p><button type="button" class="pri" id="pdfOpen" style="width:100%">Gerar relatório PDF do painel BI</button><button type="button" class="sec" id="xl" style="width:100%">Baixar planilha Excel (BI)</button><button type="button" id="exp" style="width:100%">Exportar base completa (CSV)</button><button type="button" id="backupJson" style="width:100%">Baixar backup completo (JSON)</button><div class="fa"><button type="button" id="exportClose">Fechar</button></div></form></dialog>
+<dialog id="dlgExport"><form onsubmit="return false"><h2>Central de exportação</h2><p class="sub">Escolha o tipo de arquivo que deseja gerar.</p><button type="button" class="pri" id="pdfOpen" style="width:100%">Gerar relatório PDF do painel BI</button><button type="button" id="pdfAtivosOpen" style="width:100%">Gerar PDF dos ativos do dia</button><button type="button" class="sec" id="xl" style="width:100%">Baixar planilha Excel (BI)</button><button type="button" id="exp" style="width:100%">Exportar base completa (CSV)</button><button type="button" id="backupJson" style="width:100%">Baixar backup completo (JSON)</button><div class="fa"><button type="button" id="exportClose">Fechar</button></div></form></dialog>
 <dialog id="dlgPdf"><form onsubmit="return false"><h2>Relatório executivo em PDF</h2><p class="sub">Escolha o período e o nível de detalhamento antes de gerar o documento.</p><label>Mês de referência<input type="month" id="pdfMonth"></label><label class="chk"><input type="radio" name="pdfMode" value="simple" checked> Relatório simplificado — visão executiva, resultados e gráficos principais.</label><label class="chk"><input type="radio" name="pdfMode" value="full"> Relatório completo — inclui evolução diária e semanal, funil, categorias de vendas, comissões e detalhamento.</label><div class="preview">O relatório usa os dados atuais do seu Pipeline. Depois de gerar, você poderá baixar o PDF ou compartilhar pelo aparelho, quando essa função estiver disponível.</div><div class="fa"><button type="button" id="pdfCancel">Voltar</button><button type="button" class="pri" id="pdfGenerate">Gerar PDF</button></div></form></dialog>
+<dialog id="dlgPdfAtivos"><form onsubmit="return false"><h2>Ativos cadastrados no dia</h2><p class="sub">Gere uma ficha organizada com os dados dos ativos registrados na data escolhida.</p><label>Data dos cadastros<input type="date" id="pdfAtivosData"></label><div class="preview">O PDF reúne estabelecimento, responsável, telefone, endereço completo, interesse, data e horário da visita, observações e link do mapa, quando preenchidos. Inclui somente os ativos cadastrados na data selecionada.</div><div class="fa"><button type="button" id="pdfAtivosCancel">Cancelar</button><button type="button" class="pri" id="pdfAtivosGenerate">Gerar PDF</button></div></form></dialog>
 <dialog id="dlg7"><form onsubmit="return false"><h2 id="ctitle">Novo contador</h2><label>Nome do escritório<input id="cescritorio" maxlength="100" required placeholder="Ex.: Escritório Contábil Silva"></label><label>Nome do contador<input id="cnome" maxlength="80" placeholder="Nome do contador"></label><label>Telefone / WhatsApp<input id="ctel" type="tel" inputmode="tel" placeholder="DDD + telefone"></label><label>Rua / endereço<input id="crua" maxlength="140" placeholder="Rua ou avenida"></label><div class="g2"><label>Bairro<input id="cbairro" maxlength="80"></label><label>Cidade<input id="ccidade" maxlength="80"></label></div><label>Link do Google Maps<input id="clink" maxlength="500" type="url" placeholder="https://maps.google.com/..."></label><div class="fa"><button type="button" id="ccancel">Cancelar</button><button type="button" class="pri" id="csave">Salvar contador</button></div></form></dialog>
 <script>
 var KEY="pipeline_v3",companyDataRevision="",ind=null,indHistory={},indConfigHistory={},atv=[],contadores=[],visitasClientes=[],evo={},comissoes=[],view="pipe",data=[],meta={meta:0},filtro="todos",busca="",editId=null,contId=null,editContId=null,editVisitaId=null,vendaClienteId=null;
@@ -1003,6 +1004,70 @@ function gerarRelatorioPDF(){
 $("pdfOpen").onclick=function(){$("dlgExport").close();$("pdfMonth").value=iso(new Date()).slice(0,7);$("dlgPdf").showModal()};
 $("pdfCancel").onclick=function(){$("dlgPdf").close();$("dlgExport").showModal()};
 $("pdfGenerate").onclick=gerarRelatorioPDF;
+
+function gerarAtivosDiaPDF(){
+ var lib=window.jspdf&&window.jspdf.jsPDF;
+ if(!lib){alert("O gerador de PDF ainda não carregou. Verifique sua conexão e tente novamente.");return}
+ var dia=$("pdfAtivosData").value||iso(new Date());
+ var lista=atv.filter(function(a){return atvCriadoEm(a)===dia}).slice().sort(function(a,b){return (a.loja||"").localeCompare(b.loja||"","pt-BR")});
+ var doc=new lib({orientation:"portrait",unit:"mm",format:"a4"}),y=18,paginas=1;
+ function cabecalho(){
+  doc.setFillColor(20,45,70);doc.rect(0,0,210,29,"F");
+  doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(17);doc.text("ATIVOS DO DIA",14,13);
+  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.text("Cadastros de "+pdfDate(dia)+"  |  Total: "+lista.length,14,21);
+  doc.setTextColor(35,45,55);y=39;
+ }
+ function novaPagina(){doc.addPage();paginas++;cabecalho()}
+ function campo(rotulo,valor){
+  if(valor===null||valor===undefined||String(valor).trim()==="")return;
+  var linhas=doc.splitTextToSize(rotulo+": "+String(valor),174);
+  if(y+linhas.length*4.2+3>276)novaPagina();
+  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(45,55,65);
+  doc.text(linhas,18,y);y+=linhas.length*4.2+2;
+ }
+ cabecalho();
+ if(!lista.length){
+  doc.setFont("helvetica","normal");doc.setFontSize(11);doc.setTextColor(55,65,75);
+  doc.text("Nenhum ativo cadastrado nesta data.",14,y);
+ }else{
+  lista.forEach(function(a,i){
+   if(y>250)novaPagina();
+   doc.setFillColor(235,241,247);doc.roundedRect(14,y-5,182,10,2,2,"F");
+   doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(31,78,121);
+   doc.text((i+1)+". "+String(a.loja||"Estabelecimento sem nome"),18,y+1);y+=12;
+   campo("Responsável",a.resp);
+   campo("Telefone / WhatsApp",a.tel);
+   campo("Endereço",a.end);
+   campo("Rua",a.rua);
+   campo("Número",a.num);
+   campo("Bairro",a.bairro);
+   campo("Cidade / UF",[a.cidade,a.uf].filter(Boolean).join(" - "));
+   campo("CEP",a.cep);
+   campo("Interesse",({alta:"Alto",media:"Médio",baixa:"Baixo"})[a.int]||a.int);
+   campo("Data da visita",pdfDate(a.data));
+   campo("Horário",a.hora);
+   campo("Observações",a.obs);
+   campo("Google Maps",mapUrl(a));
+   if(y>268)y=276;else y+=4;
+  });
+ }
+ var totalPaginas=doc.getNumberOfPages();
+ for(var p=1;p<=totalPaginas;p++){
+  doc.setPage(p);doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(120,130,140);
+  doc.text("Pipeline | Relatório de ativos para apoio ao cadastro manual",14,287);
+  doc.text(p+"/"+totalPaginas,196,287,{align:"right"});
+ }
+ var filename="pipeline-ativos-"+dia+".pdf";
+ var blob=doc.output("blob"),file=new File([blob],filename,{type:"application/pdf"});
+ if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+  navigator.share({files:[file],title:"Ativos do dia",text:"Ativos cadastrados em "+pdfDate(dia)}).catch(function(e){if(e&&e.name!="AbortError")doc.save(filename)});
+ }else{doc.save(filename);stat("PDF dos ativos gerado. Confira a pasta de downloads para abrir ou compartilhar.")}
+ $("dlgPdfAtivos").close();$("dlgExport").close();
+}
+$("pdfAtivosOpen").onclick=function(){$("dlgExport").close();$("pdfAtivosData").value=iso(new Date());$("dlgPdfAtivos").showModal()};
+$("pdfAtivosCancel").onclick=function(){$("dlgPdfAtivos").close();$("dlgExport").showModal()};
+$("pdfAtivosGenerate").onclick=gerarAtivosDiaPDF;
+
 
 $("backupJson").onclick=function(){$("dlgExport").close();backupCompleto()};$("exportOpen").onclick=function(){$("dlgExport").showModal()};$("exportClose").onclick=function(){$("dlgExport").close()};
 function openMenu(){$("menudrawer").classList.add("open");$("menudrawer").setAttribute("aria-hidden","false");$("menushade").hidden=false;$("menutoggle").setAttribute("aria-expanded","true")}
