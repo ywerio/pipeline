@@ -329,15 +329,23 @@ function autoIndicadores(){
 function save(){try{autoIndicadores();localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+"m",JSON.stringify(meta));localStorage.setItem(KEY+"i",JSON.stringify(ind));localStorage.setItem(KEY+"a",JSON.stringify(atv));localStorage.setItem(KEY+"c",JSON.stringify(contadores));localStorage.setItem(KEY+"vc",JSON.stringify(visitasClientes));localStorage.setItem(KEY+"ih",JSON.stringify(indHistory));localStorage.setItem(KEY+"ic",JSON.stringify(indConfigHistory));localStorage.setItem(KEY+"e",JSON.stringify(evo));localStorage.setItem(KEY+"com",JSON.stringify(comissoes))}catch(e){}clearTimeout(pt);pt=setTimeout(pushDb,600)}
 function semana(){var h=new Date(),d=h.getDay()||7;return iso(addDays(h,1-d))}
 function feriadosTrabalho(ano){
-  var f={};
-  function add(d){f[iso(d)]=true}
+  // Calendário legal recorrente: feriados nacionais + estadual do Piauí
+  // + municipais de Teresina. Não inclui pontos facultativos.
+  var feriados={};
+  function add(d){feriados[iso(d)]=true}
   function fix(m,d){add(new Date(ano,m-1,d))}
+  // Feriados nacionais (Lei 662/1949, Lei 6.802/1980 e Lei 14.759/2023).
   [[1,1],[4,21],[5,1],[9,7],[10,12],[11,2],[11,15],[11,20],[12,25]].forEach(function(x){fix(x[0],x[1])});
-  fix(10,19); fix(8,16); fix(12,8);
-  var a=ano%19,b=Math.floor(ano/100),c=ano%100,d=Math.floor(b/4),e=b%4,fm=Math.floor((b+8)/25),g=Math.floor((b-fm+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mes=Math.floor((h+l-7*m+114)/31),dia=((h+l-7*m+114)%31)+1;
+  // Feriado estadual: Dia do Piauí (Lei Estadual 176/1937).
+  fix(10,19);
+  // Feriados municipais de Teresina (Lei Municipal 2.275/1994 e alterações).
+  fix(8,16); fix(12,8);
+  // Computa a Páscoa pelo algoritmo gregoriano para localizar os feriados móveis.
+  var a=ano%19,b=Math.floor(ano/100),c=ano%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mes=Math.floor((h+l-7*m+114)/31),dia=((h+l-7*m+114)%31)+1;
   var pascoa=new Date(ano,mes-1,dia);
+  // Sexta-feira da Paixão e Corpus Christi (feriados municipais em Teresina).
   add(addDays(pascoa,-2)); add(addDays(pascoa,60));
-  return f;
+  return feriados;
 }
 function renderMetaDiaria(){
   var hoje=iso(new Date()),mes=hoje.slice(0,7),ano=+mes.slice(0,4),feriados=feriadosTrabalho(ano);
@@ -1088,7 +1096,7 @@ $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade")
 var pipelineStarted=false;
 window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
 window.__pipelineResetState=function(){data=[];companyDataRevision="";meta={meta:0};ind=IND0();indHistory={};atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
-if("serviceWorker" in navigator){navigator.serviceWorker.addEventListener("controllerchange",function(){if(!window.__pipelineSwReloaded){window.__pipelineSwReloaded=true;window.location.reload()}});navigator.serviceWorker.register("sw.js?v=36").then(function(reg){return reg.update()}).catch(function(){});}
+if("serviceWorker" in navigator){navigator.serviceWorker.addEventListener("controllerchange",function(){if(!window.__pipelineSwReloaded){window.__pipelineSwReloaded=true;window.location.reload()}});navigator.serviceWorker.register("sw.js?v=37").then(function(reg){return reg.update()}).catch(function(){});}
 </script>
 
 <script type="module">
