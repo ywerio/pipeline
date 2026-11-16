@@ -492,8 +492,18 @@ function periodosMes(mes){
 function indicePeriodo(mes,ds){if(!ds||ds.slice(0,7)!==mes)return -1;var p=periodosMes(mes);for(var i=0;i<p.length;i++)if(ds>=p[i].inicio&&ds<=p[i].fim)return i;if(p.length&&ds<p[0].inicio)return 0;if(p.length&&ds>p[p.length-1].fim)return p.length-1;return -1}
 function diaUtilIndicador(d,feriados){return d.getDay()!=0&&d.getDay()!=6&&!feriados[iso(d)]}
 function diasUteisPeriodo(periodo){var ano=+periodo.inicio.slice(0,4),feriados=feriadosTrabalho(ano),n=0;for(var d=parse(periodo.inicio);iso(d)<=periodo.fim;d=addDays(d,1))if(diaUtilIndicador(d,feriados))n++;return n}
-function diasUteisRestantes(mes,indice){var p=periodosMes(mes),n=0;for(var i=indice;i<p.length;i++)n+=diasUteisPeriodo(p[i]);return n}
-function distribuirSaldoPorDiasUteis(mes,inicio,saldo){var p=periodosMes(mes),total=diasUteisRestantes(mes,inicio),out=[],acumulado=0;for(var i=inicio;i<p.length;i++){var valor=i===p.length-1?Math.max(0,saldo-acumulado):(total>0?Math.round(Math.max(0,saldo)*diasUteisPeriodo(p[i])/total*100)/100:0);out.push(valor);acumulado+=valor}return out}
+function periodosMetaRestantes(mes,inicio){
+ var p=periodosMes(mes),limite=p.length;
+ // Uma última faixa com menos de sete dias corridos é parcial e não recebe meta semanal.
+ if(limite>inicio){var ultima=p[limite-1],duracao=Math.round((parse(ultima.fim)-parse(ultima.inicio))/86400000)+1;if(duracao<7)limite--}
+ return p.slice(inicio,limite);
+}
+function diasUteisRestantes(mes,indice){return periodosMetaRestantes(mes,indice).reduce(function(n,p){return n+diasUteisPeriodo(p)},0)}
+function distribuirSaldoPorDiasUteis(mes,inicio,saldo){
+ var periodos=periodosMetaRestantes(mes,inicio),total=periodos.reduce(function(n,p){return n+diasUteisPeriodo(p)},0),out=[],acumulado=0;
+ periodos.forEach(function(p,i){var valor=i===periodos.length-1?Math.max(0,saldo-acumulado):(total>0?Math.round(Math.max(0,saldo)*diasUteisPeriodo(p)/total*100)/100:0);out.push(valor);acumulado+=valor});
+ return out;
+}
 function redistribuirPeriodosAntigos(mes,arr){
  var p=periodosMes(mes),novo=p.map(function(){return indicadorVazio()});
  if(!Array.isArray(arr))return novo;
@@ -1076,7 +1086,7 @@ $("menutoggle").onclick=openMenu;$("menuclose").onclick=closeMenu;$("menushade")
 var pipelineStarted=false;
 window.__pipelineStart=function(){if(pipelineStarted)return;pipelineStarted=true;load();setupEvo();render();initDb()};
 window.__pipelineResetState=function(){data=[];companyDataRevision="";meta={meta:0};ind=IND0();indHistory={};atv=[];contadores=[];visitasClientes=[];evo={};comissoes=[];render()};
-if("serviceWorker" in navigator){navigator.serviceWorker.addEventListener("controllerchange",function(){if(!window.__pipelineSwReloaded){window.__pipelineSwReloaded=true;window.location.reload()}});navigator.serviceWorker.register("sw.js?v=35").then(function(reg){return reg.update()}).catch(function(){});}
+if("serviceWorker" in navigator){navigator.serviceWorker.addEventListener("controllerchange",function(){if(!window.__pipelineSwReloaded){window.__pipelineSwReloaded=true;window.location.reload()}});navigator.serviceWorker.register("sw.js?v=36").then(function(reg){return reg.update()}).catch(function(){});}
 </script>
 
 <script type="module">
