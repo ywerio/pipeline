@@ -1,4 +1,4 @@
-const C="pipeline-v36";
+const C="pipeline-v37";
 self.addEventListener("install",e=>{
  e.waitUntil(caches.open(C).then(c=>c.addAll(["./","index.html","manifest.webmanifest","icon-192.png","icon-512.png","dados-empresas-v1.json"])));
  self.skipWaiting();
